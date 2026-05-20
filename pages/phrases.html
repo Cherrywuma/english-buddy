@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>句型库</title>
+<link rel="stylesheet" href="../css/style.css">
+<style>
+.scene-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.scene-card {
+  background: var(--bg-card); border-radius: var(--radius-lg);
+  padding: 16px 12px; box-shadow: var(--shadow);
+  cursor: pointer; border: none; text-align: center;
+  font-family: inherit;
+}
+.scene-icon { font-size: 32px; margin-bottom: 6px; }
+.scene-name { font-size: 14px; font-weight: 600; margin-bottom: 2px; }
+.scene-count { font-size: 11px; color: var(--text-secondary); }
+
+.level-toggle {
+  display: flex; gap: 6px; margin-bottom: 14px;
+  padding: 3px; background: var(--bg-card);
+  border-radius: var(--radius-md);
+}
+.level-btn {
+  flex: 1; padding: 8px; text-align: center;
+  font-size: 13px; border: none; background: transparent;
+  border-radius: var(--radius-sm); cursor: pointer;
+  font-family: inherit; color: var(--text-secondary);
+}
+.level-btn.active { background: var(--primary); color: white; font-weight: 500; }
+
+.phrase-row {
+  background: var(--bg-card); border-radius: var(--radius-md);
+  padding: 12px 14px; margin-bottom: 8px;
+  box-shadow: var(--shadow); position: relative;
+}
+.phrase-en { font-size: 16px; font-weight: 500; margin-bottom: 4px; line-height: 1.4; }
+.phrase-zh { font-size: 13px; color: var(--text-secondary); margin-bottom: 6px; }
+.phrase-note { font-size: 11px; color: var(--text-tertiary); font-style: italic; margin-bottom: 8px; }
+.phrase-level-tag {
+  display: inline-block; font-size: 10px; padding: 1px 6px;
+  border-radius: 8px; margin-right: 6px;
+}
+.phrase-level-tag.l1 { background: #E8F8EC; color: #2E8B3D; }
+.phrase-level-tag.l2 { background: #FFF4E0; color: #B8740C; }
+.phrase-actions { display: flex; gap: 6px; margin-top: 6px; }
+.btn-mini {
+  padding: 5px 10px; background: var(--primary-light);
+  color: var(--primary); border: none; border-radius: 12px;
+  font-size: 12px; cursor: pointer; font-family: inherit;
+}
+.btn-mini:active { transform: scale(0.95); }
+
+.search-bar {
+  width: 100%; padding: 10px 14px; font-size: 14px;
+  border: 1.5px solid var(--border); border-radius: var(--radius-md);
+  margin-bottom: 12px; font-family: inherit;
+  box-sizing: border-box;
+}
+
+.scene-header {
+  background: linear-gradient(135deg, #6F5BFF, #4F7CFF);
+  color: white; padding: 16px 18px; border-radius: var(--radius-lg);
+  margin-bottom: 12px;
+}
+.scene-header .icon { font-size: 28px; margin-right: 8px; }
+.scene-header .name { font-size: 20px; font-weight: 600; display: inline-block; }
+.scene-header .desc { font-size: 13px; opacity: 0.9; margin-top: 4px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="page-header">
+    <button class="back-btn" onclick="goBack()">‹ 返回</button>
+    <h1 class="page-title">句型库</h1>
+    <div style="width:60px"></div>
+  </div>
+
+  <div id="scene-list">
+    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px">300 个高频日常对话句型,按场景分类</p>
+    <input type="text" class="search-bar" id="search" placeholder="🔍 搜索 (输中英文都可以)" oninput="searchPhrases()">
+    <div id="search-results"></div>
+    <div class="scene-grid" id="scenes"></div>
+  </div>
+
+  <div id="scene-detail" style="display:none">
+    <div class="scene-header">
+      <span class="icon" id="d-icon"></span>
+      <span class="name" id="d-name"></span>
+      <div class="desc" id="d-desc"></div>
+    </div>
+    
+    <div class="level-toggle">
+      <button class="level-btn active" data-lv="all" onclick="filterLevel('all')">全部</button>
+      <button class="level-btn" data-lv="1" onclick="filterLevel(1)">基础</button>
+      <button class="level-btn" data-lv="2" onclick="filterLevel(2)">进阶</button>
+    </div>
+    
+    <div id="phrase-list"></div>
+  </div>
+</div>
+
+<script src="../data/phrases.js"></script>
+<script src="../js/core.js"></script>
+<script>
+let currentScene = null;
+let currentLevel = 'all';
+
+function goBack() {
+  if (document.getElementById('scene-detail').style.display === 'block') {
+    document.getElementById('scene-detail').style.display = 'none';
+    document.getElementById('scene-list').style.display = 'block';
+    document.getElementById('search').value = '';
+    document.getElementById('search-results').innerHTML = '';
+  } else {
+    location.href = '../index.html';
+  }
+}
+
+function escapeHtml(s) {
+  return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function renderScenes() {
+  const grid = document.getElementById('scenes');
+  grid.innerHTML = PHRASES.scenes.map(s => `
+    <button class="scene-card" onclick="openScene('${s.id}')">
+      <div class="scene-icon">${s.icon}</div>
+      <div class="scene-name">${s.name}</div>
+      <div class="scene-count">${s.phrases.length} 句</div>
+    </button>
+  `).join('');
+}
+renderScenes();
+
+function openScene(sceneId) {
+  currentScene = PHRASES.scenes.find(s => s.id === sceneId);
+  if (!currentScene) return;
+  document.getElementById('scene-list').style.display = 'none';
+  document.getElementById('scene-detail').style.display = 'block';
+  document.getElementById('d-icon').textContent = currentScene.icon;
+  document.getElementById('d-name').textContent = currentScene.name;
+  document.getElementById('d-desc').textContent = currentScene.desc;
+  currentLevel = 'all';
+  document.querySelectorAll('.level-btn').forEach(b => 
+    b.classList.toggle('active', b.dataset.lv === 'all'));
+  renderPhrases();
+}
+
+function filterLevel(lv) {
+  currentLevel = lv;
+  document.querySelectorAll('.level-btn').forEach(b => 
+    b.classList.toggle('active', b.dataset.lv == lv));
+  renderPhrases();
+}
+
+function renderPhrases() {
+  if (!currentScene) return;
+  const list = document.getElementById('phrase-list');
+  let phrases = currentScene.phrases;
+  if (currentLevel !== 'all') phrases = phrases.filter(p => p.level === Number(currentLevel));
+  
+  list.innerHTML = phrases.map((p, i) => `
+    <div class="phrase-row">
+      <span class="phrase-level-tag l${p.level}">${p.level === 1 ? '基础' : '进阶'}</span>
+      <div class="phrase-en">${escapeHtml(p.en)}</div>
+      <div class="phrase-zh">${escapeHtml(p.zh)}</div>
+      <div class="phrase-note">💡 ${escapeHtml(p.note || '')}</div>
+      <div class="phrase-actions">
+        <button class="btn-mini" onclick="playPhrase('${escapeJs(p.en)}', 0.85)">🔊 听</button>
+        <button class="btn-mini" onclick="playPhrase('${escapeJs(p.en)}', 0.6)">🐢 慢听</button>
+        <button class="btn-mini" onclick="practice('${escapeJs(p.en)}', '${escapeJs(p.zh)}')">🎤 跟读</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function escapeJs(s) {
+  return String(s || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+}
+
+function playPhrase(en, rate) {
+  Speech.speak(en, { rate: rate || 0.85 });
+}
+
+function practice(en, zh) {
+  if (!Recognition.supported()) {
+    alert('请用 iPhone Safari 或电脑 Chrome');
+    return;
+  }
+  Recognition.start({
+    onResult: (heard) => {
+      const r = Pronunciation.score(en, heard);
+      alert('🎤 你说: ' + heard + '\n📊 评分: ' + r.score + '分');
+      Tracking.log('phrase_practice', { en, score: r.score });
+    },
+    onError: (e) => alert('没听清: ' + e)
+  });
+  setTimeout(() => Speech.speak(en, { rate: 0.85 }), 100);
+}
+
+function searchPhrases() {
+  const q = document.getElementById('search').value.trim().toLowerCase();
+  const wrap = document.getElementById('search-results');
+  if (!q) { wrap.innerHTML = ''; return; }
+  const all = PHRASES.getAll();
+  const matches = all.filter(p => 
+    p.en.toLowerCase().includes(q) || 
+    p.zh.includes(q) || 
+    (p.note && p.note.includes(q))
+  ).slice(0, 20);
+  
+  if (matches.length === 0) {
+    wrap.innerHTML = '<p style="color:var(--text-tertiary);text-align:center;padding:10px;font-size:13px">没有找到</p>';
+    return;
+  }
+  
+  wrap.innerHTML = '<p style="font-size:12px;color:var(--text-secondary);margin-bottom:8px">找到 ' + matches.length + ' 条:</p>' + 
+    matches.map(p => `
+      <div class="phrase-row">
+        <span style="font-size:11px;color:var(--text-tertiary)">${escapeHtml(p.sceneIcon + ' ' + p.sceneName)}</span>
+        <div class="phrase-en" style="margin-top:3px">${escapeHtml(p.en)}</div>
+        <div class="phrase-zh">${escapeHtml(p.zh)}</div>
+        <div class="phrase-actions">
+          <button class="btn-mini" onclick="playPhrase('${escapeJs(p.en)}', 0.85)">🔊 听</button>
+        </div>
+      </div>
+    `).join('');
+}
+</script>
+</body>
+</html>

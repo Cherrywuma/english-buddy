@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>情景对话</title>
+<link rel="stylesheet" href="../css/style.css">
+<style>
+.script-card {
+  display: flex; align-items: center;
+  padding: 14px; background: var(--bg-card);
+  border-radius: var(--radius-lg); margin-bottom: 10px;
+  box-shadow: var(--shadow); cursor: pointer;
+  border: none; width: 100%; text-align: left;
+  font-family: inherit;
+}
+.script-num {
+  width: 38px; height: 38px; border-radius: 50%;
+  background: #F2E8FF; color: #8B5CF6;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 600; font-size: 16px; margin-right: 12px;
+  flex-shrink: 0;
+}
+.script-info { flex: 1; min-width: 0; }
+.script-title { font-size: 15px; font-weight: 600; margin: 0 0 2px; }
+.script-title-en { font-size: 12px; color: var(--text-secondary); margin: 0; }
+.script-meta { font-size: 11px; color: var(--text-tertiary); margin-top: 4px; }
+.script-level {
+  display: inline-block; padding: 1px 6px; border-radius: 8px;
+  font-size: 10px; margin-right: 4px;
+}
+.level-1 { background: #E8F8EC; color: #2E8B3D; }
+.level-2 { background: #FFF4E0; color: #B8740C; }
+
+.script-header {
+  background: linear-gradient(135deg, #8B5CF6, #EC4899);
+  color: white; padding: 18px; border-radius: var(--radius-lg);
+  margin-bottom: 12px;
+}
+.script-header h2 { margin: 0 0 4px; font-size: 20px; }
+.script-header .titleEn { font-size: 13px; opacity: 0.9; margin: 0 0 8px; }
+.script-header .meta {
+  font-size: 12px; opacity: 0.9;
+  padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.3);
+}
+
+.dialogue-line {
+  background: var(--bg-card); border-radius: var(--radius-md);
+  padding: 11px 13px; margin-bottom: 8px;
+  box-shadow: var(--shadow); position: relative;
+}
+.line-role {
+  display: inline-block; font-size: 11px; font-weight: 600;
+  background: var(--primary-light); color: var(--primary);
+  padding: 2px 8px; border-radius: 10px; margin-bottom: 5px;
+}
+.line-num {
+  position: absolute; top: 8px; right: 12px;
+  font-size: 11px; color: var(--text-tertiary);
+}
+.line-en { font-size: 15px; font-weight: 500; line-height: 1.4; margin-bottom: 4px; }
+.line-zh { font-size: 13px; color: var(--text-secondary); line-height: 1.4; }
+.line-actions { margin-top: 8px; display: flex; gap: 6px; }
+.btn-mini {
+  padding: 5px 10px; background: var(--primary-light);
+  color: var(--primary); border: none; border-radius: 12px;
+  font-size: 12px; cursor: pointer; font-family: inherit;
+}
+.btn-mini:active { transform: scale(0.95); }
+
+.mode-toggle {
+  display: flex; gap: 6px; margin-bottom: 12px;
+  padding: 3px; background: var(--bg-card);
+  border-radius: var(--radius-md);
+}
+.mode-btn {
+  flex: 1; padding: 8px; text-align: center;
+  font-size: 13px; border: none; background: transparent;
+  border-radius: var(--radius-sm); cursor: pointer;
+  font-family: inherit; color: var(--text-secondary);
+}
+.mode-btn.active { background: var(--primary); color: white; font-weight: 500; }
+
+.read-all-btn {
+  width: 100%; padding: 13px;
+  background: var(--primary); color: white;
+  border: none; border-radius: var(--radius-md);
+  font-size: 14px; font-weight: 500;
+  margin-bottom: 12px; cursor: pointer;
+  font-family: inherit;
+}
+.read-all-btn.playing { background: #FF9500; }
+
+.learning-points {
+  background: #FFF4E0; padding: 10px 12px;
+  border-radius: var(--radius-md); margin-bottom: 12px;
+  border-left: 3px solid #FF9500;
+}
+.learning-points .label {
+  font-size: 11px; color: #B8740C; font-weight: 600;
+  margin-bottom: 4px;
+}
+.learning-points .points {
+  font-size: 12px; color: var(--text-secondary);
+}
+
+.role-pill {
+  display: inline-block; padding: 3px 10px;
+  background: rgba(255,255,255,0.2);
+  border-radius: 12px; font-size: 11px;
+  margin-right: 4px;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="page-header">
+    <button class="back-btn" onclick="goBack()">‹ 返回</button>
+    <h1 class="page-title">情景对话</h1>
+    <div style="width:60px"></div>
+  </div>
+
+  <div id="script-list">
+    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px">20 个真实生活场景对话,适合角色扮演</p>
+  </div>
+
+  <div id="script-detail" style="display:none">
+    <div class="script-header">
+      <h2 id="s-title"></h2>
+      <p class="titleEn" id="s-titleEn"></p>
+      <div class="meta">
+        <span id="s-roles"></span>
+      </div>
+    </div>
+    
+    <div class="learning-points">
+      <div class="label">💡 本剧学习要点</div>
+      <div class="points" id="s-points"></div>
+    </div>
+    
+    <button class="read-all-btn" id="read-all">🔊 听全剧朗读</button>
+    
+    <div class="mode-toggle">
+      <button class="mode-btn active" data-mode="bilingual" onclick="setMode('bilingual')">中英对照</button>
+      <button class="mode-btn" data-mode="en-only" onclick="setMode('en-only')">只看英文</button>
+      <button class="mode-btn" data-mode="zh-only" onclick="setMode('zh-only')">只看中文</button>
+    </div>
+    
+    <div id="dialogue-list"></div>
+  </div>
+</div>
+
+<script src="../data/scripts.js"></script>
+<script src="../js/core.js"></script>
+<script>
+let currentScript = null;
+let mode = 'bilingual';
+let isReadingAll = false;
+
+function goBack() {
+  if (document.getElementById('script-detail').style.display === 'block') {
+    if (isReadingAll) { Speech.stop(); isReadingAll = false; }
+    document.getElementById('script-detail').style.display = 'none';
+    document.getElementById('script-list').style.display = 'block';
+  } else {
+    location.href = '../index.html';
+  }
+}
+
+function escapeHtml(s) {
+  return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function escapeJs(s) {
+  return String(s || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+}
+
+function renderScripts() {
+  const list = document.getElementById('script-list');
+  SCRIPTS.scripts.forEach(s => {
+    const btn = document.createElement('button');
+    btn.className = 'script-card';
+    btn.innerHTML = `
+      <div class="script-num">${s.id}</div>
+      <div class="script-info">
+        <div class="script-title">${escapeHtml(s.titleZh)}</div>
+        <div class="script-title-en">${escapeHtml(s.title)}</div>
+        <div class="script-meta">
+          <span class="script-level level-${s.level}">${s.level === 1 ? '基础' : '进阶'}</span>
+          📍 ${escapeHtml(s.scene)} · 💬 ${s.dialogue.length} 句
+        </div>
+      </div>
+      <div style="color:var(--text-tertiary);font-size:20px">›</div>
+    `;
+    btn.onclick = () => openScript(s);
+    list.appendChild(btn);
+  });
+}
+renderScripts();
+
+function openScript(s) {
+  currentScript = s;
+  document.getElementById('script-list').style.display = 'none';
+  document.getElementById('script-detail').style.display = 'block';
+  document.getElementById('s-title').textContent = s.titleZh;
+  document.getElementById('s-titleEn').textContent = s.title;
+  document.getElementById('s-roles').innerHTML = '🎭 ' + s.roles.map(r => 
+    `<span class="role-pill">${escapeHtml(r)}</span>`
+  ).join('');
+  document.getElementById('s-points').textContent = s.learningPoints.join(' · ');
+  renderDialogue();
+}
+
+function renderDialogue() {
+  const wrap = document.getElementById('dialogue-list');
+  wrap.innerHTML = currentScript.dialogue.map((d, i) => `
+    <div class="dialogue-line">
+      <div class="line-num">${i + 1}</div>
+      <div class="line-role">${escapeHtml(d.role)}</div>
+      <div class="line-en" style="${mode === 'zh-only' ? 'display:none' : ''}">${escapeHtml(d.en)}</div>
+      <div class="line-zh" style="${mode === 'en-only' ? 'display:none' : ''}">${escapeHtml(d.zh)}</div>
+      <div class="line-actions">
+        <button class="btn-mini" onclick="playLine(${i}, 0.85)">🔊 听</button>
+        <button class="btn-mini" onclick="playLine(${i}, 0.6)">🐢 慢听</button>
+        <button class="btn-mini" onclick="practiceLine(${i})">🎤 跟读</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function setMode(m) {
+  mode = m;
+  document.querySelectorAll('.mode-btn').forEach(b => 
+    b.classList.toggle('active', b.dataset.mode === m));
+  renderDialogue();
+}
+
+function playLine(i, rate) {
+  Speech.speak(currentScript.dialogue[i].en, { rate: rate || 0.85 });
+}
+
+function practiceLine(i) {
+  const line = currentScript.dialogue[i];
+  if (!Recognition.supported()) {
+    alert('请用 iPhone Safari 或电脑 Chrome');
+    return;
+  }
+  Speech.speak(line.en, { rate: 0.85 });
+  setTimeout(() => {
+    Recognition.start({
+      onResult: (heard) => {
+        const r = Pronunciation.score(line.en, heard);
+        alert('🎤 你说: ' + heard + '\n📊 评分: ' + r.score + '分');
+        Tracking.log('script_practice', { scriptId: currentScript.id, lineIdx: i, score: r.score });
+      },
+      onError: (e) => alert('没听清: ' + e)
+    });
+  }, 1500);
+}
+
+document.getElementById('read-all').addEventListener('click', () => {
+  const btn = document.getElementById('read-all');
+  if (isReadingAll) {
+    Speech.stop();
+    isReadingAll = false;
+    btn.textContent = '🔊 听全剧朗读';
+    btn.classList.remove('playing');
+    return;
+  }
+  isReadingAll = true;
+  btn.textContent = '⏸ 停止朗读';
+  btn.classList.add('playing');
+  
+  let idx = 0;
+  function next() {
+    if (!isReadingAll || idx >= currentScript.dialogue.length) {
+      isReadingAll = false;
+      btn.textContent = '🔊 听全剧朗读';
+      btn.classList.remove('playing');
+      return;
+    }
+    Speech.speak(currentScript.dialogue[idx].en, {
+      rate: 0.85,
+      onend: () => { idx++; setTimeout(next, 600); }
+    });
+  }
+  next();
+});
+</script>
+</body>
+</html>

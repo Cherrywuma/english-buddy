@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>单元测试卷</title>
+<link rel="stylesheet" href="../css/style.css">
+<style>
+.quiz-card {
+  display: flex; align-items: center;
+  padding: 14px; background: var(--bg-card);
+  border-radius: var(--radius-lg); margin-bottom: 10px;
+  box-shadow: var(--shadow); cursor: pointer;
+  border: none; width: 100%; text-align: left;
+  font-family: inherit;
+}
+.quiz-num {
+  width: 38px; height: 38px; border-radius: 50%;
+  background: #FFE5E5; color: #E24B4A;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 600; font-size: 16px; margin-right: 12px;
+  flex-shrink: 0;
+}
+.quiz-info { flex: 1; min-width: 0; }
+.quiz-title { font-size: 15px; font-weight: 600; margin: 0 0 2px; }
+.quiz-meta { font-size: 12px; color: var(--text-secondary); margin: 0; }
+.quiz-last {
+  font-size: 11px; margin-top: 4px;
+  color: var(--text-tertiary);
+}
+.quiz-last.good { color: #34C759; }
+.quiz-last.mid { color: #FF9500; }
+.quiz-last.bad { color: #E24B4A; }
+
+.quiz-header {
+  background: linear-gradient(135deg, #E24B4A, #FF6A6A);
+  color: white; padding: 16px 18px; border-radius: var(--radius-lg);
+  margin-bottom: 12px;
+}
+.quiz-header h2 { margin: 0 0 4px; font-size: 20px; }
+.quiz-header p { margin: 0; font-size: 13px; opacity: 0.95; }
+
+.section-header {
+  background: var(--primary-light);
+  padding: 10px 12px; border-radius: var(--radius-md);
+  margin: 14px 0 8px;
+}
+.section-header .name {
+  font-size: 15px; font-weight: 600; color: var(--primary);
+}
+.section-header .desc {
+  font-size: 12px; color: var(--text-secondary); margin-top: 2px;
+}
+
+.question-box {
+  background: var(--bg-card); border-radius: var(--radius-md);
+  padding: 12px 14px; margin-bottom: 10px;
+  box-shadow: var(--shadow);
+}
+.q-num {
+  font-size: 11px; color: var(--text-tertiary);
+  margin-bottom: 4px;
+}
+.q-text {
+  font-size: 14px; font-weight: 500; margin-bottom: 8px;
+  line-height: 1.4;
+}
+.audio-btn {
+  background: var(--primary-light); color: var(--primary);
+  border: none; padding: 6px 12px; border-radius: 14px;
+  font-size: 12px; cursor: pointer; margin-bottom: 8px;
+  font-family: inherit;
+}
+.passage-box {
+  background: #FFF4E0; padding: 12px 14px;
+  border-radius: var(--radius-md); margin-bottom: 12px;
+  font-size: 13px; line-height: 1.6;
+}
+.passage-box .label {
+  font-size: 11px; color: #B8740C; font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.q-opts { display: flex; flex-direction: column; gap: 7px; }
+.q-opt {
+  padding: 9px 12px; background: var(--bg);
+  border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+  font-size: 13px; text-align: left; cursor: pointer;
+  font-family: inherit; transition: all 0.15s;
+}
+.q-opt:active { transform: scale(0.98); }
+.q-opt.selected { background: var(--primary-light); border-color: var(--primary); }
+.q-opt.correct { background: #E8F8EC; border-color: #34C759; color: #2E8B3D; }
+.q-opt.wrong { background: #FFE5E5; border-color: #FF3B30; color: #C42828; }
+
+.submit-bar {
+  position: sticky; bottom: 0;
+  background: var(--bg); padding: 12px 0;
+  border-top: 1px solid var(--border);
+  margin-top: 14px;
+}
+
+.result-screen {
+  text-align: center; padding: 20px 0;
+}
+.result-score {
+  font-size: 64px; font-weight: 700;
+  margin-bottom: 4px;
+}
+.result-score.good { color: #34C759; }
+.result-score.mid { color: #FF9500; }
+.result-score.bad { color: #E24B4A; }
+.result-label { font-size: 14px; color: var(--text-secondary); }
+
+.review-section {
+  margin-top: 16px;
+}
+.review-title {
+  font-size: 14px; font-weight: 600;
+  margin-bottom: 8px; padding-left: 4px;
+}
+.review-item {
+  background: var(--bg-card); border-radius: var(--radius-md);
+  padding: 10px 12px; margin-bottom: 8px;
+  border-left: 3px solid #E24B4A;
+}
+.review-q { font-size: 13px; font-weight: 500; margin-bottom: 4px; }
+.review-yours { font-size: 12px; color: #E24B4A; margin-bottom: 2px; }
+.review-correct { font-size: 12px; color: #34C759; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="page-header">
+    <button class="back-btn" onclick="goBack()">‹ 返回</button>
+    <h1 class="page-title">单元测试</h1>
+    <div style="width:60px"></div>
+  </div>
+
+  <div id="quiz-list">
+    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px">8 套单元测试卷,每套 25-30 题</p>
+  </div>
+
+  <div id="quiz-do" style="display:none">
+    <div class="quiz-header">
+      <h2 id="q-title">Unit X</h2>
+      <p id="q-progress">已答 0/30</p>
+    </div>
+    <div id="q-body"></div>
+    <div class="submit-bar">
+      <button class="btn btn-primary btn-large btn-full" onclick="submitQuiz()">提交批改</button>
+    </div>
+  </div>
+
+  <div id="quiz-result" style="display:none">
+    <div class="result-screen">
+      <div class="result-score" id="r-score">--</div>
+      <div class="result-label">满分 100 分</div>
+      <div id="r-summary" style="margin-top:14px;font-size:14px;color:var(--text-secondary)"></div>
+    </div>
+    <div class="review-section" id="r-review"></div>
+    <div style="margin-top:20px;display:flex;gap:8px">
+      <button class="btn btn-secondary btn-large" style="flex:1" onclick="location.reload()">再做一遍</button>
+      <button class="btn btn-primary btn-large" style="flex:1" onclick="goBack()">返回</button>
+    </div>
+  </div>
+</div>
+
+<script src="../data/quizzes.js"></script>
+<script src="../js/core.js"></script>
+<script>
+let currentQuiz = null;
+let answers = {}; // 用 sectionIdx-itemIdx 作 key
+
+function goBack() {
+  if (document.getElementById('quiz-do').style.display === 'block') {
+    if (confirm('退出本次测试?进度会丢失')) location.href = '../index.html';
+  } else {
+    location.href = '../index.html';
+  }
+}
+
+function escapeHtml(s) {
+  return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function escapeJs(s) {
+  return String(s || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+}
+
+function renderQuizList() {
+  const list = document.getElementById('quiz-list');
+  QUIZZES.quizzes.forEach(q => {
+    const lastScore = Storage.get('quiz_score_' + q.id, null);
+    let lastTxt = '未做过', cls = '';
+    if (lastScore !== null) {
+      lastTxt = '上次: ' + lastScore + ' 分';
+      cls = lastScore >= 80 ? 'good' : lastScore >= 60 ? 'mid' : 'bad';
+    }
+    const totalItems = QUIZZES.getTotalItems(q);
+    const btn = document.createElement('button');
+    btn.className = 'quiz-card';
+    btn.innerHTML = `
+      <div class="quiz-num">${q.id}</div>
+      <div class="quiz-info">
+        <div class="quiz-title">${escapeHtml(q.titleZh)}</div>
+        <div class="quiz-meta">${escapeHtml(q.title)} · ${totalItems} 题</div>
+        <div class="quiz-last ${cls}">${lastTxt}</div>
+      </div>
+      <div style="color:var(--text-tertiary);font-size:20px">›</div>
+    `;
+    btn.onclick = () => startQuiz(q);
+    list.appendChild(btn);
+  });
+}
+renderQuizList();
+
+function startQuiz(quiz) {
+  currentQuiz = quiz;
+  answers = {};
+  document.getElementById('quiz-list').style.display = 'none';
+  document.getElementById('quiz-do').style.display = 'block';
+  document.getElementById('q-title').textContent = quiz.titleZh;
+  document.getElementById('q-progress').textContent = '共 ' + QUIZZES.getTotalItems(quiz) + ' 题';
+  renderQuizBody();
+}
+
+function renderQuizBody() {
+  const wrap = document.getElementById('q-body');
+  let html = '';
+  let qIdx = 1;
+  
+  currentQuiz.sections.forEach((sec, secIdx) => {
+    html += `<div class="section-header">
+      <div class="name">${escapeHtml(sec.name)} (${sec.points} 分)</div>
+      <div class="desc">${escapeHtml(sec.desc)}</div>
+    </div>`;
+    
+    if (sec.type === 'reading' && sec.passage) {
+      html += `<div class="passage-box">
+        <div class="label">📖 短文 Reading Passage</div>
+        <div>${escapeHtml(sec.passage)}</div>
+        <div style="margin-top:6px;color:var(--text-secondary);font-style:italic">${escapeHtml(sec.passageZh || '')}</div>
+        <button class="audio-btn" style="margin-top:8px" onclick="Speech.speak('${escapeJs(sec.passage)}', {rate: 0.85})">🔊 听短文</button>
+      </div>`;
+    }
+    
+    sec.items.forEach((item, itemIdx) => {
+      const key = secIdx + '-' + itemIdx;
+      html += `<div class="question-box">
+        <div class="q-num">第 ${qIdx} 题</div>`;
+      
+      if (sec.type === 'listen') {
+        html += `<div class="q-text">听音频选答案:</div>
+          <button class="audio-btn" onclick="Speech.speak('${escapeJs(item.audio)}', {rate: 0.75})">🔊 播放</button>`;
+      } else {
+        html += `<div class="q-text">${escapeHtml(item.q)}</div>`;
+      }
+      
+      html += `<div class="q-opts" id="opts-${key}">
+        ${item.options.map((o, oi) => `
+          <button class="q-opt" data-key="${key}" data-oi="${oi}" onclick="selectOpt('${key}', ${oi})">${String.fromCharCode(65 + oi)}. ${escapeHtml(o)}</button>
+        `).join('')}
+      </div>
+      </div>`;
+      qIdx++;
+    });
+  });
+  
+  wrap.innerHTML = html;
+}
+
+function selectOpt(key, oi) {
+  answers[key] = oi;
+  document.querySelectorAll(`#opts-${key} .q-opt`).forEach((b, i) => {
+    b.classList.toggle('selected', i === oi);
+  });
+  
+  // 更新进度
+  const totalItems = QUIZZES.getTotalItems(currentQuiz);
+  const answered = Object.keys(answers).length;
+  document.getElementById('q-progress').textContent = '已答 ' + answered + '/' + totalItems;
+}
+
+function submitQuiz() {
+  const totalItems = QUIZZES.getTotalItems(currentQuiz);
+  const answered = Object.keys(answers).length;
+  if (answered < totalItems) {
+    if (!confirm(`还有 ${totalItems - answered} 题没答,确定要提交吗?`)) return;
+  }
+  
+  // 评分
+  let totalScore = 0;
+  let maxScore = currentQuiz.totalPoints;
+  let totalCorrect = 0;
+  let wrongs = [];
+  
+  currentQuiz.sections.forEach((sec, secIdx) => {
+    const pointsPerItem = sec.points / sec.items.length;
+    sec.items.forEach((item, itemIdx) => {
+      const key = secIdx + '-' + itemIdx;
+      const ans = answers[key];
+      if (ans === item.answer) {
+        totalScore += pointsPerItem;
+        totalCorrect++;
+      } else {
+        wrongs.push({
+          section: sec.name,
+          q: sec.type === 'listen' ? '听: ' + item.audio : item.q,
+          your: ans !== undefined ? item.options[ans] : '(没答)',
+          correct: item.options[item.answer]
+        });
+      }
+    });
+  });
+  
+  totalScore = Math.round(totalScore);
+  Storage.set('quiz_score_' + currentQuiz.id, totalScore);
+  Tracking.log('quiz_done', { 
+    quizId: currentQuiz.id, score: totalScore, correct: totalCorrect, total: totalItems 
+  });
+  
+  // 显示结果
+  document.getElementById('quiz-do').style.display = 'none';
+  document.getElementById('quiz-result').style.display = 'block';
+  const scoreEl = document.getElementById('r-score');
+  scoreEl.textContent = totalScore;
+  scoreEl.className = 'result-score ' + (totalScore >= 80 ? 'good' : totalScore >= 60 ? 'mid' : 'bad');
+  
+  let summary = '答对 ' + totalCorrect + ' / ' + totalItems + ' 题';
+  if (totalScore >= 90) summary += ' 🌟 太棒了!';
+  else if (totalScore >= 80) summary += ' 👍 优秀!';
+  else if (totalScore >= 60) summary += ' 😊 及格了';
+  else summary += ' 💪 多复习一下';
+  document.getElementById('r-summary').textContent = summary;
+  
+  // 错题
+  const reviewEl = document.getElementById('r-review');
+  if (wrongs.length > 0) {
+    reviewEl.innerHTML = '<div class="review-title">📝 错题回顾 (' + wrongs.length + ' 题)</div>' +
+      wrongs.map(w => `
+        <div class="review-item">
+          <div class="review-q">[${escapeHtml(w.section)}] ${escapeHtml(w.q)}</div>
+          <div class="review-yours">❌ 你的答案: ${escapeHtml(w.your)}</div>
+          <div class="review-correct">✅ 正确答案: ${escapeHtml(w.correct)}</div>
+        </div>
+      `).join('');
+  } else {
+    reviewEl.innerHTML = '<div style="text-align:center;font-size:14px;color:#34C759;padding:20px">🎉 全部答对!</div>';
+  }
+}
+</script>
+</body>
+</html>

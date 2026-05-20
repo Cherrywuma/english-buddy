@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>AI 陪练</title>
+<link rel="stylesheet" href="../css/style.css">
+<style>
+.config-warn {
+  background: #FFF4E0; border-left: 4px solid #FF9500;
+  padding: 12px 14px; border-radius: var(--radius-md);
+  margin-bottom: 14px;
+}
+.config-warn p { margin: 0 0 6px; font-size: 13px; color: #B8740C; }
+.config-warn p:last-child { margin-bottom: 0; }
+
+.topic-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.topic-btn {
+  padding: 12px 8px; background: var(--bg-card);
+  border: 1.5px solid var(--border); border-radius: var(--radius-md);
+  font-size: 13px; cursor: pointer; font-family: inherit;
+  text-align: center; color: var(--text);
+}
+.topic-btn:active { transform: scale(0.97); }
+.topic-icon { font-size: 22px; display: block; margin-bottom: 4px; }
+
+.chat-area {
+  background: var(--bg-card); border-radius: var(--radius-lg);
+  padding: 12px; min-height: 380px; max-height: 60vh;
+  overflow-y: auto; margin-bottom: 12px;
+  box-shadow: var(--shadow);
+}
+.msg {
+  margin-bottom: 10px; display: flex;
+  gap: 8px; align-items: flex-start;
+}
+.msg-avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; flex-shrink: 0;
+}
+.msg.user .msg-avatar { background: #E8EFFF; }
+.msg.ai .msg-avatar { background: #FFE5F0; }
+.msg-bubble {
+  background: var(--bg); padding: 10px 12px;
+  border-radius: var(--radius-md);
+  max-width: 75%; word-wrap: break-word;
+  font-size: 14px; line-height: 1.5;
+}
+.msg.user { flex-direction: row-reverse; }
+.msg.user .msg-bubble { background: #4F7CFF; color: white; }
+.msg-translation {
+  font-size: 12px; color: var(--text-secondary);
+  margin-top: 4px; padding-top: 4px;
+  border-top: 1px dashed var(--border);
+  font-style: italic;
+}
+.msg.user .msg-translation { 
+  color: rgba(255,255,255,0.85); border-top-color: rgba(255,255,255,0.3);
+}
+
+.input-row {
+  display: flex; gap: 8px;
+  position: sticky; bottom: 0;
+}
+.input-row textarea {
+  flex: 1; padding: 10px 12px; font-size: 14px;
+  border: 1.5px solid var(--border); border-radius: var(--radius-md);
+  font-family: inherit; resize: none;
+  min-height: 44px; max-height: 100px;
+  box-sizing: border-box;
+}
+.input-row button {
+  width: 48px; height: 48px; border-radius: 50%;
+  border: none; background: var(--primary); color: white;
+  font-size: 20px; cursor: pointer; flex-shrink: 0;
+}
+.input-row button:disabled { opacity: 0.5; }
+
+.btn-mic-chat {
+  background: #34C759 !important;
+}
+.btn-mic-chat.recording {
+  background: #E24B4A !important;
+  animation: pulse 1.5s infinite;
+}
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+.typing {
+  font-size: 12px; color: var(--text-secondary);
+  font-style: italic; padding: 0 12px;
+}
+
+.usage-bar {
+  font-size: 11px; color: var(--text-tertiary);
+  text-align: right; margin-bottom: 6px;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="page-header">
+    <button class="back-btn" onclick="location.href='../index.html'">‹ 返回</button>
+    <h1 class="page-title">AI 陪练</h1>
+    <div style="width:60px"></div>
+  </div>
+
+  <div id="setup-area">
+    <div class="config-warn">
+      <p>⚙️ <strong>首次使用需要先配置</strong></p>
+      <p>1. 部署 Cloudflare Worker (代码在项目 cloudflare-worker 文件夹)</p>
+      <p>2. 在 "设置" 页填入 Worker 网址和密码</p>
+      <p>3. 配置好后回到这里就能用了</p>
+    </div>
+    <button class="btn btn-primary btn-large btn-full" onclick="location.href='settings.html'">去设置</button>
+    <button class="btn btn-secondary btn-large btn-full" style="margin-top:8px" onclick="checkAndStart()">我已配置好,开始聊天</button>
+  </div>
+
+  <div id="chat-app" style="display:none">
+    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:8px">和 AI 用英语对话练习。选个话题开始吧:</p>
+    
+    <div class="topic-grid" id="topics">
+      <button class="topic-btn" onclick="startChat('school')">
+        <span class="topic-icon">🎒</span>
+        谈学校生活
+      </button>
+      <button class="topic-btn" onclick="startChat('family')">
+        <span class="topic-icon">🏠</span>
+        谈家人
+      </button>
+      <button class="topic-btn" onclick="startChat('hobby')">
+        <span class="topic-icon">⚽</span>
+        谈爱好
+      </button>
+      <button class="topic-btn" onclick="startChat('food')">
+        <span class="topic-icon">🍔</span>
+        谈食物
+      </button>
+      <button class="topic-btn" onclick="startChat('weather')">
+        <span class="topic-icon">🌤️</span>
+        谈天气
+      </button>
+      <button class="topic-btn" onclick="startChat('free')">
+        <span class="topic-icon">💬</span>
+        自由聊天
+      </button>
+    </div>
+
+    <div id="chat-active" style="display:none">
+      <div class="usage-bar">今日剩余次数: <span id="usage">--</span></div>
+      <div class="chat-area" id="messages"></div>
+      <div class="input-row">
+        <textarea id="input" placeholder="用英语输入,或点麦克风" rows="1"></textarea>
+        <button class="btn-mic-chat" id="mic-btn" onclick="toggleMic()">🎤</button>
+        <button id="send-btn" onclick="sendMsg()">↑</button>
+      </div>
+      <button class="btn btn-secondary" style="margin-top:8px;width:100%" onclick="restart()">换个话题</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/core.js"></script>
+<script>
+let messages = [];
+let currentTopic = null;
+let isRecording = false;
+let dailyCount = 0;
+const DAILY_LIMIT = 30;
+
+const TOPICS = {
+  school: {
+    system: "You are a friendly English-speaking robot called Buddy, talking to a Chinese 4th-grade student. Keep your replies VERY SHORT (1-2 sentences), use SIMPLE words a 10-year-old knows. Always ask one follow-up question. Topic: school life (subjects, teachers, classmates, lessons). After each reply, add a Chinese translation in this format: [中文翻译]",
+    starter: "Hi! I'm Buddy. Tell me about your school. What subjects do you like? [嗨!我是 Buddy。给我讲讲你的学校吧。你喜欢什么课?]"
+  },
+  family: {
+    system: "You are a friendly English-speaking robot called Buddy, talking to a Chinese 4th-grade student. Keep replies VERY SHORT (1-2 sentences), simple words. Always ask one follow-up question. Topic: family (parents, siblings, what they do together). Add Chinese translation in format: [中文]",
+    starter: "Hello! I want to know about your family. How many people are in your family? [你好!我想了解你的家人。你家有几口人?]"
+  },
+  hobby: {
+    system: "You are friendly Buddy, talking to a Chinese 4th-grader. Reply VERY SHORT (1-2 sentences), simple words. Always ask follow-up. Topic: hobbies and free time. Add Chinese translation in format: [中文]",
+    starter: "Hi friend! What do you like to do after school? [嗨朋友!放学后你喜欢做什么?]"
+  },
+  food: {
+    system: "You are friendly Buddy, talking to a Chinese 4th-grader. Reply VERY SHORT (1-2 sentences), simple words. Always ask follow-up. Topic: food and eating. Add Chinese translation in format: [中文]",
+    starter: "Hi! I'm hungry haha. What's your favorite food? [嗨!我饿了哈哈。你最爱吃什么?]"
+  },
+  weather: {
+    system: "You are friendly Buddy, talking to a Chinese 4th-grader. Reply VERY SHORT (1-2 sentences), simple words. Always ask follow-up. Topic: weather and seasons. Add Chinese translation in format: [中文]",
+    starter: "Hello! How's the weather today? Is it sunny or rainy? [你好!今天天气怎么样?晴天还是雨天?]"
+  },
+  free: {
+    system: "You are friendly Buddy, talking to a Chinese 4th-grader. Reply VERY SHORT (1-2 sentences), simple words a 10-year-old understands. Always ask one follow-up question. Be encouraging. Add Chinese translation in format: [中文]",
+    starter: "Hi! Let's chat in English. How are you today? [嗨!我们用英语聊天吧。你今天怎么样?]"
+  }
+};
+
+function checkAndStart() {
+  if (!AI.getWorkerUrl()) {
+    alert('请先在设置页配置 Cloudflare Worker 网址');
+    location.href = 'settings.html';
+    return;
+  }
+  if (!AI.getPassword()) {
+    alert('请先在设置页配置密码');
+    location.href = 'settings.html';
+    return;
+  }
+  document.getElementById('setup-area').style.display = 'none';
+  document.getElementById('chat-app').style.display = 'block';
+  refreshUsage();
+}
+
+// 启动时检查是否已配置
+if (AI.getWorkerUrl() && AI.getPassword()) {
+  document.getElementById('setup-area').style.display = 'none';
+  document.getElementById('chat-app').style.display = 'block';
+  refreshUsage();
+}
+
+function refreshUsage() {
+  const today = new Date().toDateString();
+  const usage = Storage.get('ai_usage', { date: today, count: 0 });
+  if (usage.date !== today) {
+    usage.date = today;
+    usage.count = 0;
+    Storage.set('ai_usage', usage);
+  }
+  dailyCount = usage.count;
+  document.getElementById('usage').textContent = (DAILY_LIMIT - dailyCount) + '/' + DAILY_LIMIT;
+}
+
+function incrementUsage() {
+  const today = new Date().toDateString();
+  const usage = Storage.get('ai_usage', { date: today, count: 0 });
+  usage.count++;
+  Storage.set('ai_usage', usage);
+  dailyCount = usage.count;
+  document.getElementById('usage').textContent = (DAILY_LIMIT - dailyCount) + '/' + DAILY_LIMIT;
+}
+
+function escapeHtml(s) {
+  return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function startChat(topicId) {
+  currentTopic = TOPICS[topicId];
+  messages = [];
+  document.getElementById('topics').style.display = 'none';
+  document.getElementById('chat-active').style.display = 'block';
+  document.getElementById('messages').innerHTML = '';
+  addAIMessage(currentTopic.starter);
+}
+
+function restart() {
+  document.getElementById('chat-active').style.display = 'none';
+  document.getElementById('topics').style.display = 'grid';
+  currentTopic = null;
+  messages = [];
+}
+
+function addAIMessage(text) {
+  // 分离英文和中文翻译: 格式 "English text [中文翻译]"
+  const match = text.match(/^(.+?)\s*\[([^\]]+)\]\s*$/s);
+  let en = text, zh = '';
+  if (match) { en = match[1].trim(); zh = match[2].trim(); }
+  
+  const wrap = document.getElementById('messages');
+  const html = `
+    <div class="msg ai">
+      <div class="msg-avatar">🤖</div>
+      <div class="msg-bubble">
+        <div>${escapeHtml(en)}</div>
+        ${zh ? `<div class="msg-translation">${escapeHtml(zh)}</div>` : ''}
+        <div style="margin-top:6px">
+          <button class="btn-mini" style="padding:3px 8px;font-size:11px;background:rgba(255,255,255,0.4);color:var(--primary);border:none;border-radius:10px;cursor:pointer" onclick="Speech.speak('${en.replace(/'/g, "\\'")}', {rate: 0.85})">🔊</button>
+        </div>
+      </div>
+    </div>
+  `;
+  wrap.insertAdjacentHTML('beforeend', html);
+  wrap.scrollTop = wrap.scrollHeight;
+  
+  // 自动朗读 AI 回复
+  setTimeout(() => Speech.speak(en, { rate: 0.85 }), 300);
+}
+
+function addUserMessage(text) {
+  const wrap = document.getElementById('messages');
+  const html = `
+    <div class="msg user">
+      <div class="msg-avatar">👦</div>
+      <div class="msg-bubble">${escapeHtml(text)}</div>
+    </div>
+  `;
+  wrap.insertAdjacentHTML('beforeend', html);
+  wrap.scrollTop = wrap.scrollHeight;
+}
+
+function showTyping() {
+  const wrap = document.getElementById('messages');
+  wrap.insertAdjacentHTML('beforeend', '<div class="typing" id="typing">Buddy 在思考...</div>');
+  wrap.scrollTop = wrap.scrollHeight;
+}
+
+function hideTyping() {
+  const t = document.getElementById('typing');
+  if (t) t.remove();
+}
+
+async function sendMsg() {
+  const input = document.getElementById('input');
+  const text = input.value.trim();
+  if (!text) return;
+  
+  if (dailyCount >= DAILY_LIMIT) {
+    alert('今天 AI 用量已满 (' + DAILY_LIMIT + ' 次), 明天再来吧');
+    return;
+  }
+  
+  input.value = '';
+  document.getElementById('send-btn').disabled = true;
+  addUserMessage(text);
+  messages.push({ role: 'user', content: text });
+  
+  showTyping();
+  
+  try {
+    const response = await AI.chat(messages, {
+      system: currentTopic.system,
+      maxTokens: 200,
+      temperature: 0.7,
+      model: 'claude-haiku-4-5-20251001'
+    });
+    
+    hideTyping();
+    
+    const aiText = (response.content || [])
+      .filter(c => c.type === 'text')
+      .map(c => c.text)
+      .join('\n');
+    
+    if (!aiText) throw new Error('AI 没有回复');
+    
+    messages.push({ role: 'assistant', content: aiText });
+    addAIMessage(aiText);
+    incrementUsage();
+    Tracking.log('ai_chat', { topic: currentTopic.system.substring(0, 30), tokens: aiText.length });
+  } catch (e) {
+    hideTyping();
+    alert('AI 调用失败: ' + e.message + '\n\n可能原因:\n1. Worker 没部署\n2. 密码错误\n3. API key 没设置\n4. 今日额度用完');
+    console.error(e);
+  } finally {
+    document.getElementById('send-btn').disabled = false;
+  }
+}
+
+// 麦克风输入
+function toggleMic() {
+  const btn = document.getElementById('mic-btn');
+  if (isRecording) {
+    Recognition.stop();
+    isRecording = false;
+    btn.classList.remove('recording');
+    return;
+  }
+  if (!Recognition.supported()) {
+    alert('请用 iPhone Safari 或电脑 Chrome');
+    return;
+  }
+  isRecording = true;
+  btn.classList.add('recording');
+  Recognition.start({
+    onResult: (heard) => {
+      isRecording = false;
+      btn.classList.remove('recording');
+      document.getElementById('input').value = heard;
+    },
+    onError: () => {
+      isRecording = false;
+      btn.classList.remove('recording');
+    }
+  });
+}
+
+// 回车发送
+document.getElementById('input').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMsg();
+  }
+});
+</script>
+</body>
+</html>

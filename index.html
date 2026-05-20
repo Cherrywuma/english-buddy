@@ -10,8 +10,8 @@
 <title>English Buddy · 我的英语小伙伴</title>
 <link rel="stylesheet" href="css/style.css">
 <style>
-.hero { text-align: center; padding: 24px 16px 16px; }
-.hero-emoji { font-size: 52px; margin-bottom: 4px; }
+.hero { text-align: center; padding: 22px 16px 14px; }
+.hero-emoji { font-size: 50px; margin-bottom: 4px; }
 .hero-title {
   font-size: 26px; font-weight: 700; margin: 0 0 4px;
   background: linear-gradient(135deg, #4F7CFF, #6F5BFF);
@@ -28,7 +28,7 @@
 .streak-banner {
   background: linear-gradient(135deg, #FF9500, #FF6A00);
   color: white; border-radius: var(--radius-lg);
-  padding: 12px 16px; margin-bottom: 16px;
+  padding: 12px 16px; margin-bottom: 14px;
   display: flex; align-items: center; gap: 12px;
 }
 .streak-icon { font-size: 28px; }
@@ -38,11 +38,11 @@
 .section-title {
   font-size: 12px; font-weight: 600;
   color: var(--text-secondary); text-transform: uppercase;
-  letter-spacing: 0.5px; margin: 18px 0 8px; padding-left: 4px;
+  letter-spacing: 0.5px; margin: 16px 0 6px; padding-left: 4px;
 }
-.unit-summary {
-  font-size: 11px; color: var(--text-tertiary);
-  margin-top: 2px;
+.version-tag {
+  font-size: 10px; color: var(--text-tertiary);
+  text-align: center; margin: 14px 0 4px;
 }
 </style>
 </head>
@@ -78,7 +78,7 @@
     </div>
   </div>
 
-  <div class="section-title">每日学习</div>
+  <div class="section-title">📚 课本学习</div>
 
   <button class="module-card" onclick="location.href='pages/vocab-learn.html'">
     <div class="module-icon" style="background:#E8EFFF;color:#4F7CFF">📖</div>
@@ -93,7 +93,7 @@
     <div class="module-icon" style="background:#FFE8D9;color:#D85A30">📜</div>
     <div class="module-info">
       <h3 class="module-title">课文精读</h3>
-      <p class="module-desc">Story Time + Cartoon Time · 16 篇带角色对话</p>
+      <p class="module-desc">Story + Cartoon · 16 篇真实课文</p>
     </div>
     <div class="module-arrow">›</div>
   </button>
@@ -107,45 +107,65 @@
     <div class="module-arrow">›</div>
   </button>
 
+  <div class="section-title">💬 拓展会话</div>
+
+  <button class="module-card" onclick="location.href='pages/phrases.html'">
+    <div class="module-icon" style="background:#E8EFFF;color:#6F5BFF">🗣️</div>
+    <div class="module-info">
+      <h3 class="module-title">句型库</h3>
+      <p class="module-desc">300 高频句型 · 12 个场景</p>
+    </div>
+    <div class="module-arrow">›</div>
+  </button>
+
+  <button class="module-card" onclick="location.href='pages/scripts.html'">
+    <div class="module-icon" style="background:#F2E8FF;color:#8B5CF6">🎭</div>
+    <div class="module-info">
+      <h3 class="module-title">情景对话</h3>
+      <p class="module-desc">20 真实场景剧本 · 角色扮演</p>
+    </div>
+    <div class="module-arrow">›</div>
+  </button>
+
   <button class="module-card" onclick="location.href='pages/speak.html'">
     <div class="module-icon" style="background:#E8F8EC;color:#34C759">🎤</div>
     <div class="module-info">
       <h3 class="module-title">跟读练习</h3>
-      <p class="module-desc">开口说英语,锻炼发音</p>
+      <p class="module-desc">开口说英语 · 自动评分</p>
     </div>
     <div class="module-arrow">›</div>
   </button>
 
-  <div class="section-title">敬请期待</div>
-
-  <button class="module-card" onclick="alert('对话剧本和 AI 自由对话将在下一批更新中加入')" style="opacity:0.6">
-    <div class="module-icon" style="background:#F2E8FF;color:#8B5CF6">💬</div>
-    <div class="module-info">
-      <h3 class="module-title">情景对话</h3>
-      <p class="module-desc">20+ 真实场景剧本</p>
-    </div>
-    <div class="module-arrow">›</div>
-  </button>
-
-  <button class="module-card" onclick="alert('AI 自由对话功能将在下一批更新中加入')" style="opacity:0.6">
+  <button class="module-card" onclick="location.href='pages/ai-chat.html'">
     <div class="module-icon" style="background:#FFE5F0;color:#EC4899">🤖</div>
     <div class="module-info">
-      <h3 class="module-title">AI 陪练</h3>
-      <p class="module-desc">和 AI 用英语自由聊天</p>
+      <h3 class="module-title">AI 陪练 🆕</h3>
+      <p class="module-desc">和 AI 自由聊天 · 需先配置</p>
     </div>
     <div class="module-arrow">›</div>
   </button>
 
-  <button class="module-card" onclick="alert('语法系统和测试卷将在下一批更新中加入')" style="opacity:0.6">
+  <div class="section-title">📝 测试 & 语法</div>
+
+  <button class="module-card" onclick="location.href='pages/grammar.html'">
+    <div class="module-icon" style="background:#FFEFD9;color:#FF6A00">📚</div>
+    <div class="module-info">
+      <h3 class="module-title">语法系统 🆕</h3>
+      <p class="module-desc">8 大语法点 · 讲解 + 练习</p>
+    </div>
+    <div class="module-arrow">›</div>
+  </button>
+
+  <button class="module-card" onclick="location.href='pages/quiz.html'">
     <div class="module-icon" style="background:#FFE5E5;color:#E24B4A">📝</div>
     <div class="module-info">
-      <h3 class="module-title">语法 & 测试卷</h3>
-      <p class="module-desc">单元测、期中期末模拟卷</p>
+      <h3 class="module-title">单元测试 🆕</h3>
+      <p class="module-desc">8 套单元测试卷 · 100 分制</p>
     </div>
     <div class="module-arrow">›</div>
   </button>
 
-  <div class="section-title">设置</div>
+  <div class="section-title">⚙️ 设置</div>
 
   <button class="module-card" onclick="location.href='pages/settings.html'">
     <div class="module-icon" style="background:#F0F0F2;color:#6B6B70">⚙️</div>
@@ -155,6 +175,8 @@
     </div>
     <div class="module-arrow">›</div>
   </button>
+
+  <div class="version-tag">v0.5 · 课本完整 + 句型剧本 + AI对话 + 测试卷 + 语法</div>
 </div>
 
 <script src="data/vocab-4b.js"></script>
