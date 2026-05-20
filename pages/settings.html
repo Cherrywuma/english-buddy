@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>设置</title>
+<link rel="stylesheet" href="../css/style.css">
+<style>
+.setting-section {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  margin-bottom: 12px;
+  box-shadow: var(--shadow);
+}
+.setting-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0 0 12px;
+}
+.setting-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+.setting-row:last-child { border-bottom: none; }
+.setting-row label {
+  font-size: 15px;
+  font-weight: 500;
+}
+.setting-row .desc {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+.setting-input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-family: monospace;
+  margin-top: 8px;
+  box-sizing: border-box;
+  background: var(--bg);
+}
+.btn-save {
+  width: 100%;
+  margin-top: 12px;
+}
+.status-pill {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+.status-on { background: #E8F8EC; color: #2E8B3D; }
+.status-off { background: #FFE5E5; color: #C42828; }
+
+.parent-zone {
+  background: linear-gradient(135deg, #6F5BFF, #4F7CFF);
+  color: white;
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  margin-bottom: 12px;
+}
+.parent-zone h3 { margin: 0 0 4px; }
+.parent-zone p { margin: 0; font-size: 13px; opacity: 0.9; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="page-header">
+    <button class="back-btn" onclick="location.href='../index.html'">‹ 返回</button>
+    <h1 class="page-title">设置</h1>
+    <div style="width:60px"></div>
+  </div>
+
+  <div class="parent-zone">
+    <h3>👨‍👩‍👧 家长配置区</h3>
+    <p>这部分让家长配置一次,孩子日常用不需要管</p>
+  </div>
+
+  <div class="setting-section">
+    <div class="setting-title">AI 对话功能</div>
+    <div style="font-size:13px;color:var(--text-secondary);line-height:1.6;margin-bottom:12px">
+      把 Cloudflare Worker 地址填进来,孩子才能用 AI 对话功能。<br>
+      Worker 部署教程见 DEPLOY.md。
+    </div>
+    
+    <div style="margin-bottom:12px">
+      <label style="font-size:14px;font-weight:500">Cloudflare Worker URL</label>
+      <input type="text" class="setting-input" id="worker-url" placeholder="https://your-worker.workers.dev">
+    </div>
+    
+    <div>
+      <label style="font-size:14px;font-weight:500">访问密码 (家庭自定义)</label>
+      <input type="password" class="setting-input" id="app-pwd" placeholder="设个简单的密码,例如:xiaoming2026">
+      <div style="font-size:12px;color:var(--text-secondary);margin-top:4px">
+        密码会在 Worker 端校验,防止别人通过 URL 白嫖
+      </div>
+    </div>
+    
+    <button class="btn btn-primary btn-save" onclick="saveAI()">保存配置</button>
+    
+    <div class="setting-row" style="margin-top:12px">
+      <div>
+        <label>AI 状态</label>
+        <div class="desc" id="ai-status-desc">未连接</div>
+      </div>
+      <button class="btn btn-secondary" onclick="testAI()">测试连接</button>
+    </div>
+  </div>
+
+  <div class="setting-section">
+    <div class="setting-title">学习进度</div>
+    <div class="setting-row">
+      <div>
+        <label>累计学过的词</label>
+        <div class="desc" id="total-learned">0 / 137</div>
+      </div>
+    </div>
+    <div class="setting-row">
+      <div>
+        <label>已掌握的词</label>
+        <div class="desc" id="total-mastered">0 个</div>
+      </div>
+    </div>
+    <div class="setting-row">
+      <div>
+        <label>连续打卡</label>
+        <div class="desc" id="total-streak">0 天</div>
+      </div>
+    </div>
+    <div class="setting-row">
+      <div>
+        <label>今日完成</label>
+        <div class="desc" id="today-count">0 项</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="setting-section">
+    <div class="setting-title">数据管理</div>
+    <button class="btn btn-secondary btn-full" onclick="exportData()" style="margin-bottom:8px">导出学习数据</button>
+    <button class="btn btn-secondary btn-full" onclick="clearData()" style="color:#FF3B30">清空所有数据</button>
+  </div>
+
+  <div class="setting-section">
+    <div class="setting-title">关于</div>
+    <div style="font-size:14px;line-height:1.6;color:var(--text-secondary)">
+      English Buddy v0.1 (Part 1)<br>
+      译林版 4B · 137 词<br>
+      © 为家庭学习而生
+    </div>
+  </div>
+</div>
+
+<script src="../js/core.js"></script>
+<script src="../data/vocab-4b.js"></script>
+<script>
+// 加载现有配置
+document.getElementById('worker-url').value = Storage.get('worker_url', '');
+document.getElementById('app-pwd').value = Storage.get('app_password', '');
+
+function saveAI() {
+  const url = document.getElementById('worker-url').value.trim();
+  const pwd = document.getElementById('app-pwd').value.trim();
+  if (!url || !pwd) {
+    alert('请同时填写 Worker URL 和密码');
+    return;
+  }
+  AI.setWorkerUrl(url);
+  AI.setPassword(pwd);
+  alert('保存成功');
+  refreshStatus();
+}
+
+async function testAI() {
+  if (!Storage.get('worker_url')) {
+    alert('请先保存 Worker URL 和密码');
+    return;
+  }
+  document.getElementById('ai-status-desc').textContent = '测试中...';
+  try {
+    const res = await AI.chat([
+      { role: 'user', content: 'Say "test ok" in 3 words.' }
+    ], { maxTokens: 20 });
+    document.getElementById('ai-status-desc').textContent = '已连接 ✓';
+    alert('连接成功!\nAI 回复: ' + (res.content?.[0]?.text || JSON.stringify(res)));
+  } catch (e) {
+    document.getElementById('ai-status-desc').textContent = '连接失败';
+    alert('测试失败: ' + e.message);
+  }
+}
+
+function refreshStatus() {
+  const url = Storage.get('worker_url', '');
+  const pwd = Storage.get('app_password', '');
+  document.getElementById('ai-status-desc').textContent = 
+    (url && pwd) ? '已配置 (点测试连接验证)' : '未配置';
+  
+  const allWords = VOCAB_4B.getAllWords();
+  const stats = SRS.getStats(allWords);
+  document.getElementById('total-learned').textContent = `${stats.learning + stats.mastered} / ${stats.total}`;
+  document.getElementById('total-mastered').textContent = `${stats.mastered} 个`;
+  document.getElementById('total-streak').textContent = `${Tracking.getStreak()} 天`;
+  document.getElementById('today-count').textContent = `${Tracking.getTodayCount()} 项`;
+}
+
+function exportData() {
+  const data = {};
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (k.startsWith('eb_')) data[k] = localStorage.getItem(k);
+  }
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `english-buddy-backup-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+}
+
+function clearData() {
+  if (!confirm('确定要清空所有学习数据吗?此操作不可恢复!')) return;
+  if (!confirm('真的要清空?孩子之前的进度全没了!')) return;
+  const keys = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (k.startsWith('eb_')) keys.push(k);
+  }
+  keys.forEach(k => localStorage.removeItem(k));
+  alert('已清空');
+  refreshStatus();
+}
+
+refreshStatus();
+</script>
+</body>
+</html>

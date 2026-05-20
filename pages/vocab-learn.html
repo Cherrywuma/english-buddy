@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>学新单词</title>
+<link rel="stylesheet" href="../css/style.css">
+<style>
+.unit-list-item {
+  display: flex; align-items: center;
+  padding: 14px; background: var(--bg-card);
+  border-radius: var(--radius-lg); margin-bottom: 10px;
+  box-shadow: var(--shadow); cursor: pointer;
+  border: none; width: 100%; text-align: left;
+  font-family: inherit;
+}
+.unit-num-badge {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--primary-light); color: var(--primary);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 600; font-size: 15px; margin-right: 12px;
+  flex-shrink: 0;
+}
+.unit-info { flex: 1; min-width: 0; }
+.unit-title-zh { font-size: 15px; font-weight: 600; margin: 0 0 1px; }
+.unit-title-en { font-size: 12px; color: var(--text-secondary); margin: 0; }
+.unit-progress {
+  font-size: 11px; color: var(--text-tertiary); margin-top: 4px;
+}
+
+.flashcard {
+  background: var(--bg-card); border-radius: var(--radius-lg);
+  padding: 28px 20px; box-shadow: var(--shadow);
+  text-align: center; min-height: 280px;
+  display: flex; flex-direction: column; justify-content: center;
+  margin-bottom: 14px;
+}
+.word-en {
+  font-size: 38px; font-weight: 700;
+  color: var(--text); margin-bottom: 6px;
+  word-break: break-word;
+}
+.word-ipa {
+  font-size: 16px; color: var(--text-secondary);
+  margin-bottom: 12px; font-family: 'Times New Roman', serif;
+  font-style: italic;
+}
+.word-pos {
+  display: inline-block; font-size: 11px;
+  background: var(--primary-light); color: var(--primary);
+  padding: 2px 9px; border-radius: 10px; margin-bottom: 12px;
+}
+.word-zh {
+  font-size: 22px; color: var(--text);
+  margin-bottom: 14px; font-weight: 500;
+}
+.word-zh.hidden { color: transparent; background: var(--bg); border-radius: 6px; }
+.word-example {
+  font-size: 13px; color: var(--text-secondary);
+  background: var(--bg); padding: 9px 12px;
+  border-radius: var(--radius-sm); margin-top: 8px;
+}
+
+.card-controls {
+  display: flex; gap: 8px; margin-bottom: 14px;
+}
+.card-controls .btn {
+  flex: 1; padding: 10px; font-size: 13px;
+}
+
+.bottom-actions {
+  display: flex; gap: 8px;
+}
+.bottom-actions .btn { flex: 1; padding: 13px; font-size: 14px; }
+
+.progress-bar {
+  height: 4px; background: var(--border); border-radius: 2px;
+  margin-bottom: 14px; overflow: hidden;
+}
+.progress-fill {
+  height: 100%; background: var(--primary);
+  transition: width 0.3s;
+}
+
+.page-counter {
+  text-align: center; font-size: 13px;
+  color: var(--text-secondary); margin-bottom: 10px;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="page-header">
+    <button class="back-btn" onclick="goBack()">‹ 返回</button>
+    <h1 class="page-title" id="page-title">学新单词</h1>
+    <div style="width:60px"></div>
+  </div>
+
+  <div id="unit-list">
+    <p style="color:var(--text-secondary);font-size:13px;margin-bottom:10px">选择一个单元开始学习:</p>
+  </div>
+
+  <div id="learn-area" style="display:none">
+    <div class="page-counter"><span id="cur-idx">1</span> / <span id="total-cnt">0</span></div>
+    <div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
+    
+    <div class="flashcard">
+      <div class="word-en" id="card-en"></div>
+      <div class="word-ipa" id="card-ipa"></div>
+      <span class="word-pos" id="card-pos"></span>
+      <div class="word-zh hidden" id="card-zh" onclick="revealZh()">点击显示中文</div>
+      <div class="word-example" id="card-example"></div>
+    </div>
+    
+    <div class="card-controls">
+      <button class="btn btn-secondary" onclick="speakWord()">🔊 听发音</button>
+      <button class="btn btn-secondary" onclick="speakWordSlow()">🐢 慢速</button>
+    </div>
+    
+    <div class="bottom-actions">
+      <button class="btn btn-secondary btn-large" onclick="markDifficult()">😣 难记</button>
+      <button class="btn btn-primary btn-large" onclick="nextWord()">下一个 ›</button>
+    </div>
+  </div>
+
+  <div id="done-screen" style="display:none">
+    <div class="empty-state">
+      <div class="empty-icon">🎉</div>
+      <div style="font-size:22px;font-weight:600;margin-bottom:8px">学完啦!</div>
+      <div id="done-msg" style="color:var(--text-secondary);margin-bottom:20px"></div>
+      <button class="btn btn-primary btn-large" onclick="location.reload()">学其他单元</button>
+      <button class="btn btn-secondary btn-large" onclick="goBack()" style="margin-top:10px">返回主页</button>
+    </div>
+  </div>
+</div>
+
+<script src="../data/vocab-4b.js"></script>
+<script src="../js/core.js"></script>
+<script>
+let currentWords = [];
+let currentIdx = 0;
+let currentUnit = null;
+
+function goBack() {
+  if (document.getElementById('learn-area').style.display === 'block') {
+    if (confirm('退出本次学习?进度会保存。')) location.href = '../index.html';
+  } else {
+    location.href = '../index.html';
+  }
+}
+
+function escapeHtml(s) {
+  return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function renderUnits() {
+  const list = document.getElementById('unit-list');
+  VOCAB_4B.units.forEach(unit => {
+    if (!unit.words || unit.words.length === 0) return;
+    const stats = SRS.getStats(unit.words);
+    const btn = document.createElement('button');
+    btn.className = 'unit-list-item';
+    btn.innerHTML = `
+      <div class="unit-num-badge">${unit.id}</div>
+      <div class="unit-info">
+        <div class="unit-title-zh">${unit.titleZh}</div>
+        <div class="unit-title-en">Unit ${unit.id} · ${unit.title}</div>
+        <div class="unit-progress">${unit.words.length} 词 · 已学 ${stats.learning + stats.mastered}</div>
+      </div>
+      <div style="color:var(--text-tertiary);font-size:20px">›</div>
+    `;
+    btn.onclick = () => startUnit(unit);
+    list.appendChild(btn);
+  });
+}
+renderUnits();
+
+function startUnit(unit) {
+  currentUnit = unit;
+  currentWords = unit.words.slice();
+  currentIdx = 0;
+  document.getElementById('unit-list').style.display = 'none';
+  document.getElementById('learn-area').style.display = 'block';
+  document.getElementById('page-title').textContent = `Unit ${unit.id}`;
+  document.getElementById('total-cnt').textContent = currentWords.length;
+  showCard();
+}
+
+function showCard() {
+  if (currentIdx >= currentWords.length) return finish();
+  const w = currentWords[currentIdx];
+  document.getElementById('cur-idx').textContent = currentIdx + 1;
+  document.getElementById('progress').style.width = ((currentIdx) / currentWords.length * 100) + '%';
+  document.getElementById('card-en').textContent = w.en;
+  document.getElementById('card-ipa').textContent = w.ipa || '';
+  document.getElementById('card-pos').textContent = w.pos || '';
+  
+  const zhEl = document.getElementById('card-zh');
+  zhEl.textContent = '点击显示中文';
+  zhEl.classList.add('hidden');
+  zhEl.dataset.zh = w.zh;
+  
+  const ex = document.getElementById('card-example');
+  if (w.example) {
+    ex.innerHTML = `<div style="margin-bottom:3px">${escapeHtml(w.example)}</div>
+                    <div style="font-size:12px;color:var(--text-tertiary)">${escapeHtml(w.exampleZh || '')}</div>`;
+    ex.style.display = 'block';
+  } else {
+    ex.style.display = 'none';
+  }
+  
+  // 自动朗读单词
+  setTimeout(() => Speech.speak(w.en, { rate: 0.85 }), 200);
+}
+
+function revealZh() {
+  const el = document.getElementById('card-zh');
+  el.textContent = el.dataset.zh;
+  el.classList.remove('hidden');
+}
+
+function speakWord() {
+  Speech.speak(currentWords[currentIdx].en, { rate: 0.85 });
+}
+
+function speakWordSlow() {
+  Speech.speak(currentWords[currentIdx].en, { rate: 0.55 });
+}
+
+function nextWord() {
+  const w = currentWords[currentIdx];
+  SRS.markLearned(w.en);
+  Tracking.log('vocab_learn', { word: w.en, unit: currentUnit.id });
+  currentIdx++;
+  showCard();
+}
+
+function markDifficult() {
+  const w = currentWords[currentIdx];
+  SRS.markDifficult(w.en);
+  Tracking.log('vocab_difficult', { word: w.en, unit: currentUnit.id });
+  currentIdx++;
+  showCard();
+}
+
+function finish() {
+  Tracking.log('unit_complete', { unit: currentUnit.id, count: currentWords.length });
+  document.getElementById('learn-area').style.display = 'none';
+  document.getElementById('done-screen').style.display = 'block';
+  document.getElementById('done-msg').textContent = 
+    `Unit ${currentUnit.id} 的 ${currentWords.length} 个单词学完啦!记得明天回来复习哦。`;
+}
+</script>
+</body>
+</html>

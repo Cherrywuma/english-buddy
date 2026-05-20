@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>复习</title>
+<link rel="stylesheet" href="../css/style.css">
+<style>
+.mode-card {
+  display: flex; align-items: center;
+  padding: 16px; background: var(--bg-card);
+  border-radius: var(--radius-lg); margin-bottom: 10px;
+  box-shadow: var(--shadow); cursor: pointer;
+  border: none; width: 100%; text-align: left;
+  font-family: inherit;
+}
+.mode-icon {
+  width: 44px; height: 44px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; margin-right: 14px;
+  flex-shrink: 0;
+}
+.mode-info { flex: 1; }
+.mode-title { font-size: 15px; font-weight: 600; margin: 0 0 2px; }
+.mode-desc { font-size: 12px; color: var(--text-secondary); margin: 0; }
+
+.review-card {
+  background: var(--bg-card); border-radius: var(--radius-lg);
+  padding: 28px 20px; box-shadow: var(--shadow);
+  text-align: center; min-height: 240px;
+  display: flex; flex-direction: column; justify-content: center;
+  margin-bottom: 14px;
+}
+.q-text {
+  font-size: 28px; font-weight: 600;
+  margin-bottom: 10px; word-break: break-word;
+}
+.q-ipa {
+  font-size: 14px; color: var(--text-secondary);
+  font-style: italic; margin-bottom: 16px;
+}
+.q-hint {
+  font-size: 13px; color: var(--text-tertiary);
+}
+
+.review-options {
+  display: flex; flex-direction: column; gap: 9px;
+  margin-bottom: 14px;
+}
+.review-opt {
+  padding: 14px 16px; background: var(--bg-card);
+  border: 1.5px solid var(--border); border-radius: var(--radius-md);
+  font-size: 15px; text-align: left; cursor: pointer;
+  font-family: inherit; transition: all 0.15s;
+  box-shadow: var(--shadow);
+}
+.review-opt:active { transform: scale(0.98); }
+.review-opt.correct { background: #E8F8EC; border-color: #34C759; color: #2E8B3D; }
+.review-opt.wrong { background: #FFE5E5; border-color: #FF3B30; color: #C42828; }
+
+.empty-due {
+  text-align: center; padding: 40px 20px;
+}
+.empty-due-icon { font-size: 56px; margin-bottom: 14px; }
+
+.progress-bar {
+  height: 4px; background: var(--border); border-radius: 2px;
+  margin-bottom: 14px; overflow: hidden;
+}
+.progress-fill { height: 100%; background: var(--primary); transition: width 0.3s; }
+.page-counter { text-align: center; font-size: 13px; color: var(--text-secondary); margin-bottom: 10px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="page-header">
+    <button class="back-btn" onclick="goBack()">‹ 返回</button>
+    <h1 class="page-title">复习</h1>
+    <div style="width:60px"></div>
+  </div>
+
+  <div id="mode-select">
+    <p style="color:var(--text-secondary);font-size:13px;margin-bottom:10px">选择复习模式:</p>
+    
+    <button class="mode-card" onclick="startMode('due')">
+      <div class="mode-icon" style="background:#FFF4E0;color:#FF9500">🔔</div>
+      <div class="mode-info">
+        <div class="mode-title">今日复习 (推荐)</div>
+        <div class="mode-desc"><span id="due-count">0</span> 个词到了复习时间</div>
+      </div>
+      <div style="color:var(--text-tertiary);font-size:20px">›</div>
+    </button>
+    
+    <button class="mode-card" onclick="startMode('difficult')">
+      <div class="mode-icon" style="background:#FFE5E5;color:#E24B4A">😣</div>
+      <div class="mode-info">
+        <div class="mode-title">难记词</div>
+        <div class="mode-desc"><span id="diff-count">0</span> 个标过难的词</div>
+      </div>
+      <div style="color:var(--text-tertiary);font-size:20px">›</div>
+    </button>
+    
+    <button class="mode-card" onclick="startMode('random')">
+      <div class="mode-icon" style="background:#E8EFFF;color:#4F7CFF">🎲</div>
+      <div class="mode-info">
+        <div class="mode-title">随机抽测</div>
+        <div class="mode-desc">从所有学过的词里随机抽 10 个</div>
+      </div>
+      <div style="color:var(--text-tertiary);font-size:20px">›</div>
+    </button>
+  </div>
+
+  <div id="review-area" style="display:none">
+    <div class="page-counter"><span id="cur-idx">1</span> / <span id="total-cnt">0</span></div>
+    <div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
+    
+    <div class="review-card">
+      <div class="q-text" id="q-text"></div>
+      <div class="q-ipa" id="q-ipa"></div>
+      <div class="q-hint">选择正确的中文意思</div>
+    </div>
+    
+    <div class="review-options" id="opts"></div>
+    
+    <button class="btn btn-secondary btn-large btn-full" onclick="speakQ()">🔊 听一遍</button>
+  </div>
+
+  <div id="empty-area" style="display:none">
+    <div class="empty-due">
+      <div class="empty-due-icon" id="empty-icon">🎉</div>
+      <div style="font-size:20px;font-weight:600;margin-bottom:8px" id="empty-title">没有要复习的</div>
+      <div style="color:var(--text-secondary);margin-bottom:20px" id="empty-msg"></div>
+      <button class="btn btn-primary btn-large" onclick="location.href='vocab-learn.html'">去学新单词</button>
+      <button class="btn btn-secondary btn-large" onclick="goBack()" style="margin-top:10px">返回主页</button>
+    </div>
+  </div>
+
+  <div id="done-screen" style="display:none">
+    <div class="empty-state">
+      <div class="empty-icon">🎯</div>
+      <div style="font-size:22px;font-weight:600;margin-bottom:8px">复习完成!</div>
+      <div id="done-msg" style="color:var(--text-secondary);margin-bottom:20px"></div>
+      <button class="btn btn-primary btn-large" onclick="location.reload()">再来一轮</button>
+      <button class="btn btn-secondary btn-large" onclick="goBack()" style="margin-top:10px">返回主页</button>
+    </div>
+  </div>
+</div>
+
+<script src="../data/vocab-4b.js"></script>
+<script src="../js/core.js"></script>
+<script>
+let queue = [];
+let idx = 0;
+let correctCount = 0;
+let answered = false;
+
+function goBack() {
+  if (document.getElementById('review-area').style.display === 'block') {
+    if (confirm('退出本次复习?进度会保存。')) location.href = '../index.html';
+  } else {
+    location.href = '../index.html';
+  }
+}
+
+function refreshCounts() {
+  const all = VOCAB_4B.getAllWords();
+  const stats = SRS.getStats(all);
+  document.getElementById('due-count').textContent = stats.due;
+  document.getElementById('diff-count').textContent = stats.difficult || 0;
+}
+refreshCounts();
+
+function startMode(mode) {
+  const all = VOCAB_4B.getAllWords();
+  if (mode === 'due') queue = SRS.getDue(all);
+  else if (mode === 'difficult') queue = SRS.getDifficult(all);
+  else if (mode === 'random') {
+    const learned = all.filter(w => SRS.getStatus(w.en) !== 'new');
+    queue = learned.sort(() => 0.5 - Math.random()).slice(0, 10);
+  }
+  
+  if (queue.length === 0) {
+    document.getElementById('mode-select').style.display = 'none';
+    document.getElementById('empty-area').style.display = 'block';
+    const msgs = {
+      due: { icon: '😴', title: '暂时没有要复习的', msg: '艾宾浩斯曲线判断现在还不需要复习。去学点新词吧?' },
+      difficult: { icon: '👍', title: '太棒了!', msg: '你还没标过难记的词。继续努力!' },
+      random: { icon: '📚', title: '还没有学过的词', msg: '先去学几个单元吧!' }
+    };
+    document.getElementById('empty-icon').textContent = msgs[mode].icon;
+    document.getElementById('empty-title').textContent = msgs[mode].title;
+    document.getElementById('empty-msg').textContent = msgs[mode].msg;
+    return;
+  }
+  
+  // 打乱顺序
+  queue = queue.sort(() => 0.5 - Math.random());
+  idx = 0;
+  correctCount = 0;
+  document.getElementById('mode-select').style.display = 'none';
+  document.getElementById('review-area').style.display = 'block';
+  document.getElementById('total-cnt').textContent = queue.length;
+  showQ();
+}
+
+function escapeHtml(s) {
+  return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function showQ() {
+  if (idx >= queue.length) return finish();
+  const w = queue[idx];
+  document.getElementById('cur-idx').textContent = idx + 1;
+  document.getElementById('progress').style.width = (idx / queue.length * 100) + '%';
+  document.getElementById('q-text').textContent = w.en;
+  document.getElementById('q-ipa').textContent = w.ipa || '';
+  
+  // 生成 4 个选项 (1 正确 + 3 干扰)
+  const all = VOCAB_4B.getAllWords();
+  const others = all.filter(x => x.en !== w.en && x.zh !== w.zh);
+  const distractors = others.sort(() => 0.5 - Math.random()).slice(0, 3);
+  const options = [w, ...distractors].sort(() => 0.5 - Math.random());
+  
+  const optsHTML = options.map((o, i) => `
+    <button class="review-opt" data-correct="${o.en === w.en}" onclick="answer(this, '${escapeHtml(o.en === w.en ? 'true' : 'false')}')">${escapeHtml(o.zh)}</button>
+  `).join('');
+  document.getElementById('opts').innerHTML = optsHTML;
+  answered = false;
+  
+  setTimeout(() => Speech.speak(w.en, { rate: 0.85 }), 200);
+}
+
+function answer(btn, correctStr) {
+  if (answered) return;
+  answered = true;
+  const correct = btn.dataset.correct === 'true';
+  const w = queue[idx];
+  
+  document.querySelectorAll('.review-opt').forEach(opt => {
+    opt.style.pointerEvents = 'none';
+    if (opt.dataset.correct === 'true') opt.classList.add('correct');
+    else if (opt === btn && !correct) opt.classList.add('wrong');
+  });
+  
+  SRS.review(w.en, correct);
+  if (correct) correctCount++;
+  Tracking.log('review', { word: w.en, correct });
+  
+  setTimeout(() => { idx++; showQ(); }, correct ? 800 : 1500);
+}
+
+function speakQ() {
+  Speech.speak(queue[idx].en, { rate: 0.85 });
+}
+
+function finish() {
+  Tracking.log('review_session', { count: queue.length, correct: correctCount });
+  document.getElementById('review-area').style.display = 'none';
+  document.getElementById('done-screen').style.display = 'block';
+  document.getElementById('done-msg').textContent = 
+    `复习了 ${queue.length} 个词,答对 ${correctCount} 个。继续保持!`;
+}
+</script>
+</body>
+</html>

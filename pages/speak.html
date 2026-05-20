@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>跟读练习</title>
+<link rel="stylesheet" href="../css/style.css">
+<style>
+.source-tabs {
+  display: flex; gap: 6px; margin-bottom: 14px;
+  padding: 3px; background: var(--bg-card);
+  border-radius: var(--radius-md);
+}
+.source-tab {
+  flex: 1; padding: 8px; text-align: center; font-size: 12px;
+  border-radius: var(--radius-sm); cursor: pointer; border: none;
+  background: transparent; color: var(--text-secondary); font-family: inherit;
+}
+.source-tab.active { background: var(--primary); color: white; font-weight: 500; }
+
+.unit-pill {
+  display: inline-block; padding: 6px 12px;
+  background: var(--bg-card); border: 1.5px solid var(--border);
+  border-radius: 16px; font-size: 12px; cursor: pointer;
+  margin: 0 4px 6px 0; font-family: inherit;
+}
+.unit-pill.active { background: var(--primary); color: white; border-color: var(--primary); }
+.unit-pills-wrap { margin-bottom: 14px; }
+
+.sentence-card {
+  background: var(--bg-card); border-radius: var(--radius-lg);
+  padding: 22px 18px; box-shadow: var(--shadow);
+  text-align: center; margin-bottom: 14px;
+}
+.target-sentence {
+  font-size: 22px; font-weight: 600; line-height: 1.4;
+  margin-bottom: 8px;
+}
+.target-zh {
+  font-size: 13px; color: var(--text-secondary);
+  margin-bottom: 16px;
+}
+.heard-text {
+  font-size: 14px; color: var(--text-secondary);
+  background: var(--bg); padding: 10px 12px;
+  border-radius: var(--radius-sm); margin-top: 12px;
+  min-height: 20px;
+}
+.heard-text .match { color: #34C759; font-weight: 600; }
+.heard-text .miss { color: #E24B4A; text-decoration: line-through; }
+
+.score-display {
+  font-size: 38px; font-weight: 700;
+  margin: 12px 0 4px;
+}
+.score-label { font-size: 13px; color: var(--text-secondary); margin-bottom: 12px; }
+.score-good { color: #34C759; }
+.score-mid { color: #FF9500; }
+.score-bad { color: #E24B4A; }
+
+.btn-mic {
+  width: 80px; height: 80px; border-radius: 50%;
+  background: var(--primary); color: white;
+  border: none; font-size: 36px;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 12px; cursor: pointer;
+  box-shadow: 0 6px 16px rgba(79,124,255,0.3);
+  transition: all 0.2s;
+}
+.btn-mic.recording {
+  background: #E24B4A;
+  animation: pulse 1.5s infinite;
+}
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 6px 16px rgba(226,75,74,0.3); }
+  50% { box-shadow: 0 6px 24px rgba(226,75,74,0.6); }
+}
+.mic-hint { font-size: 12px; color: var(--text-secondary); text-align: center; }
+
+.btn-row { display: flex; gap: 8px; margin-bottom: 12px; }
+.btn-row .btn { flex: 1; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="page-header">
+    <button class="back-btn" onclick="location.href='../index.html'">‹ 返回</button>
+    <h1 class="page-title">跟读练习</h1>
+    <div style="width:60px"></div>
+  </div>
+
+  <p style="font-size:12px;color:var(--text-secondary);text-align:center;margin-bottom:14px">
+    📱 请用 iPhone Safari 浏览器,跟读时允许使用麦克风
+  </p>
+
+  <div class="source-tabs">
+    <button class="source-tab active" data-src="story" onclick="setSource('story')">Story Time</button>
+    <button class="source-tab" data-src="cartoon" onclick="setSource('cartoon')">Cartoon Time</button>
+    <button class="source-tab" data-src="keysent" onclick="setSource('keysent')">核心句型</button>
+  </div>
+
+  <div class="unit-pills-wrap" id="unit-pills"></div>
+
+  <div class="sentence-card" id="sentence-card" style="display:none">
+    <div class="target-sentence" id="target-en">点击下方选择单元</div>
+    <div class="target-zh" id="target-zh"></div>
+    
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="playTarget()">🔊 听</button>
+      <button class="btn btn-secondary" onclick="playTargetSlow()">🐢 慢听</button>
+      <button class="btn btn-secondary" onclick="nextSent()">下一句 ›</button>
+    </div>
+    
+    <button class="btn-mic" id="btn-mic" onclick="toggleRecord()">🎤</button>
+    <div class="mic-hint" id="mic-hint">点麦克风开始跟读</div>
+    
+    <div id="result-area" style="display:none">
+      <div class="score-display" id="score">--</div>
+      <div class="score-label">发音匹配度</div>
+      <div class="heard-text" id="heard-text"></div>
+    </div>
+  </div>
+
+  <div id="empty-msg" style="display:none;text-align:center;padding:40px 20px;color:var(--text-secondary)">
+    请先选择单元
+  </div>
+</div>
+
+<script src="../data/vocab-4b.js"></script>
+<script src="../js/core.js"></script>
+<script>
+let source = 'story';
+let currentUnitId = null;
+let sentences = [];
+let currentIdx = 0;
+let isRecording = false;
+
+function setSource(s) {
+  source = s;
+  document.querySelectorAll('.source-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.src === s);
+  });
+  renderUnitPills();
+  if (currentUnitId) loadUnit(currentUnitId);
+}
+
+function renderUnitPills() {
+  const wrap = document.getElementById('unit-pills');
+  wrap.innerHTML = VOCAB_4B.units.map(u => 
+    `<button class="unit-pill ${u.id === currentUnitId ? 'active' : ''}" onclick="loadUnit(${u.id})">Unit ${u.id}</button>`
+  ).join('');
+}
+renderUnitPills();
+
+function loadUnit(unitId) {
+  currentUnitId = unitId;
+  const unit = VOCAB_4B.units.find(u => u.id === unitId);
+  if (!unit) return;
+  
+  if (source === 'story' && unit.storyTime) {
+    sentences = unit.storyTime.sentences;
+  } else if (source === 'cartoon' && unit.cartoonTime) {
+    sentences = unit.cartoonTime.sentences;
+  } else if (source === 'keysent') {
+    sentences = [{ en: unit.keySentence, zh: unit.keySentenceZh }];
+  } else {
+    sentences = [];
+  }
+  
+  if (sentences.length === 0) {
+    document.getElementById('sentence-card').style.display = 'none';
+    document.getElementById('empty-msg').style.display = 'block';
+    document.getElementById('empty-msg').textContent = '本单元没有此类内容';
+    return;
+  }
+  
+  currentIdx = 0;
+  document.getElementById('empty-msg').style.display = 'none';
+  document.getElementById('sentence-card').style.display = 'block';
+  renderUnitPills();
+  showSentence();
+}
+
+function showSentence() {
+  if (currentIdx >= sentences.length) currentIdx = 0;
+  const s = sentences[currentIdx];
+  document.getElementById('target-en').textContent = s.en;
+  document.getElementById('target-zh').textContent = s.zh || '';
+  document.getElementById('result-area').style.display = 'none';
+  document.getElementById('mic-hint').textContent = `第 ${currentIdx + 1}/${sentences.length} 句 · 点麦克风开始跟读`;
+}
+
+function playTarget() {
+  Speech.speak(sentences[currentIdx].en, { rate: 0.85 });
+}
+
+function playTargetSlow() {
+  Speech.speak(sentences[currentIdx].en, { rate: 0.6 });
+}
+
+function nextSent() {
+  currentIdx++;
+  if (currentIdx >= sentences.length) currentIdx = 0;
+  showSentence();
+}
+
+function toggleRecord() {
+  const btn = document.getElementById('btn-mic');
+  if (isRecording) {
+    Recognition.stop();
+    isRecording = false;
+    btn.classList.remove('recording');
+    btn.textContent = '🎤';
+    return;
+  }
+  
+  if (!Recognition.supported()) {
+    alert('当前浏览器不支持语音识别。请用 iPhone Safari 浏览器。');
+    return;
+  }
+  
+  isRecording = true;
+  btn.classList.add('recording');
+  btn.textContent = '⏹';
+  document.getElementById('mic-hint').textContent = '请大声读出来...';
+  document.getElementById('result-area').style.display = 'none';
+  
+  Recognition.start({
+    onResult: (heardText) => {
+      isRecording = false;
+      btn.classList.remove('recording');
+      btn.textContent = '🎤';
+      const target = sentences[currentIdx].en;
+      const result = Pronunciation.score(target, heardText);
+      
+      let scoreClass = 'score-bad';
+      if (result.score >= 80) scoreClass = 'score-good';
+      else if (result.score >= 60) scoreClass = 'score-mid';
+      
+      document.getElementById('score').className = 'score-display ' + scoreClass;
+      document.getElementById('score').textContent = result.score + '分';
+      document.getElementById('heard-text').innerHTML = result.highlighted;
+      document.getElementById('result-area').style.display = 'block';
+      document.getElementById('mic-hint').textContent = '再来一次?';
+      
+      Tracking.log('speak_practice', { 
+        unit: currentUnitId, source, idx: currentIdx, score: result.score 
+      });
+    },
+    onError: (err) => {
+      isRecording = false;
+      btn.classList.remove('recording');
+      btn.textContent = '🎤';
+      document.getElementById('mic-hint').textContent = '没听清,再试一次';
+      console.error('Recognition error:', err);
+    }
+  });
+}
+</script>
+</body>
+</html>

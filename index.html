@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="English Buddy">
+<meta name="theme-color" content="#4F7CFF">
+<title>English Buddy · 我的英语小伙伴</title>
+<link rel="stylesheet" href="css/style.css">
+<style>
+.hero { text-align: center; padding: 24px 16px 16px; }
+.hero-emoji { font-size: 52px; margin-bottom: 4px; }
+.hero-title {
+  font-size: 26px; font-weight: 700; margin: 0 0 4px;
+  background: linear-gradient(135deg, #4F7CFF, #6F5BFF);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.hero-subtitle { font-size: 13px; color: var(--text-secondary); margin: 0; }
+.book-tag {
+  display: inline-block; margin-top: 8px;
+  padding: 4px 12px; font-size: 11px;
+  background: #FFE8D9; color: #D85A30;
+  border-radius: 12px; font-weight: 500;
+}
+.streak-banner {
+  background: linear-gradient(135deg, #FF9500, #FF6A00);
+  color: white; border-radius: var(--radius-lg);
+  padding: 12px 16px; margin-bottom: 16px;
+  display: flex; align-items: center; gap: 12px;
+}
+.streak-icon { font-size: 28px; }
+.streak-info { flex: 1; }
+.streak-num { font-size: 22px; font-weight: 700; }
+.streak-label { font-size: 12px; opacity: 0.9; }
+.section-title {
+  font-size: 12px; font-weight: 600;
+  color: var(--text-secondary); text-transform: uppercase;
+  letter-spacing: 0.5px; margin: 18px 0 8px; padding-left: 4px;
+}
+.unit-summary {
+  font-size: 11px; color: var(--text-tertiary);
+  margin-top: 2px;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="hero">
+    <div class="hero-emoji">🎒</div>
+    <h1 class="hero-title">English Buddy</h1>
+    <p class="hero-subtitle">每天一点点,英语真简单</p>
+    <div class="book-tag">译林版 4B · 2026春新版</div>
+  </div>
+
+  <div class="streak-banner" id="streak-banner" style="display:none">
+    <div class="streak-icon">🔥</div>
+    <div class="streak-info">
+      <div class="streak-num"><span id="streak-num">0</span> 天</div>
+      <div class="streak-label">连续学习,加油!</div>
+    </div>
+  </div>
+
+  <div class="stat-grid">
+    <div class="stat-card">
+      <div class="stat-num" id="stat-learned">0</div>
+      <div class="stat-label">学过的词</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" id="stat-mastered">0</div>
+      <div class="stat-label">已掌握</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" id="stat-due">0</div>
+      <div class="stat-label">今天复习</div>
+    </div>
+  </div>
+
+  <div class="section-title">每日学习</div>
+
+  <button class="module-card" onclick="location.href='pages/vocab-learn.html'">
+    <div class="module-icon" style="background:#E8EFFF;color:#4F7CFF">📖</div>
+    <div class="module-info">
+      <h3 class="module-title">学新单词</h3>
+      <p class="module-desc">译林4B 8单元 · 151 词带音标</p>
+    </div>
+    <div class="module-arrow">›</div>
+  </button>
+
+  <button class="module-card" onclick="location.href='pages/reading.html'">
+    <div class="module-icon" style="background:#FFE8D9;color:#D85A30">📜</div>
+    <div class="module-info">
+      <h3 class="module-title">课文精读</h3>
+      <p class="module-desc">Story Time + Cartoon Time · 16 篇带角色对话</p>
+    </div>
+    <div class="module-arrow">›</div>
+  </button>
+
+  <button class="module-card" onclick="location.href='pages/vocab-review.html'">
+    <div class="module-icon" style="background:#FFF4E0;color:#FF9500">🔄</div>
+    <div class="module-info">
+      <h3 class="module-title">复习</h3>
+      <p class="module-desc">按艾宾浩斯曲线安排</p>
+    </div>
+    <div class="module-arrow">›</div>
+  </button>
+
+  <button class="module-card" onclick="location.href='pages/speak.html'">
+    <div class="module-icon" style="background:#E8F8EC;color:#34C759">🎤</div>
+    <div class="module-info">
+      <h3 class="module-title">跟读练习</h3>
+      <p class="module-desc">开口说英语,锻炼发音</p>
+    </div>
+    <div class="module-arrow">›</div>
+  </button>
+
+  <div class="section-title">敬请期待</div>
+
+  <button class="module-card" onclick="alert('对话剧本和 AI 自由对话将在下一批更新中加入')" style="opacity:0.6">
+    <div class="module-icon" style="background:#F2E8FF;color:#8B5CF6">💬</div>
+    <div class="module-info">
+      <h3 class="module-title">情景对话</h3>
+      <p class="module-desc">20+ 真实场景剧本</p>
+    </div>
+    <div class="module-arrow">›</div>
+  </button>
+
+  <button class="module-card" onclick="alert('AI 自由对话功能将在下一批更新中加入')" style="opacity:0.6">
+    <div class="module-icon" style="background:#FFE5F0;color:#EC4899">🤖</div>
+    <div class="module-info">
+      <h3 class="module-title">AI 陪练</h3>
+      <p class="module-desc">和 AI 用英语自由聊天</p>
+    </div>
+    <div class="module-arrow">›</div>
+  </button>
+
+  <button class="module-card" onclick="alert('语法系统和测试卷将在下一批更新中加入')" style="opacity:0.6">
+    <div class="module-icon" style="background:#FFE5E5;color:#E24B4A">📝</div>
+    <div class="module-info">
+      <h3 class="module-title">语法 & 测试卷</h3>
+      <p class="module-desc">单元测、期中期末模拟卷</p>
+    </div>
+    <div class="module-arrow">›</div>
+  </button>
+
+  <div class="section-title">设置</div>
+
+  <button class="module-card" onclick="location.href='pages/settings.html'">
+    <div class="module-icon" style="background:#F0F0F2;color:#6B6B70">⚙️</div>
+    <div class="module-info">
+      <h3 class="module-title">设置</h3>
+      <p class="module-desc">连接 AI · 查看进度 · 家长入口</p>
+    </div>
+    <div class="module-arrow">›</div>
+  </button>
+</div>
+
+<script src="data/vocab-4b.js"></script>
+<script src="js/core.js"></script>
+<script>
+function refreshStats() {
+  const allWords = VOCAB_4B.getAllWords();
+  const stats = SRS.getStats(allWords);
+  document.getElementById('stat-learned').textContent = stats.learning + stats.mastered;
+  document.getElementById('stat-mastered').textContent = stats.mastered;
+  document.getElementById('stat-due').textContent = stats.due;
+  
+  const streak = Tracking.getStreak();
+  if (streak > 0) {
+    document.getElementById('streak-banner').style.display = 'flex';
+    document.getElementById('streak-num').textContent = streak;
+  }
+}
+refreshStats();
+</script>
+</body>
+</html>

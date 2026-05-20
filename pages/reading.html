@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>课文精读</title>
+<link rel="stylesheet" href="../css/style.css">
+<style>
+.unit-card {
+  display: flex; align-items: center;
+  padding: 14px; background: var(--bg-card);
+  border-radius: var(--radius-lg); margin-bottom: 10px;
+  box-shadow: var(--shadow); cursor: pointer;
+  border: none; width: 100%; text-align: left;
+  font-family: inherit;
+}
+.unit-num {
+  width: 38px; height: 38px; border-radius: 50%;
+  background: #FFE8D9; color: #D85A30;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 600; font-size: 16px; margin-right: 12px;
+  flex-shrink: 0;
+}
+.unit-info { flex: 1; min-width: 0; }
+.unit-title { font-size: 15px; font-weight: 600; margin: 0 0 2px; }
+.unit-sub { font-size: 12px; color: var(--text-secondary); margin: 0; }
+.unit-big-q { font-size: 11px; color: var(--primary); margin-top: 3px; font-style: italic; }
+
+.story-mode-tabs {
+  display: flex; gap: 4px; margin-bottom: 12px;
+  padding: 3px; background: var(--bg-card);
+  border-radius: var(--radius-md);
+}
+.story-mode-tab {
+  flex: 1; padding: 7px 4px; text-align: center; font-size: 12px;
+  border-radius: var(--radius-sm); cursor: pointer; border: none;
+  background: transparent; color: var(--text-secondary); font-family: inherit;
+}
+.story-mode-tab.active {
+  background: var(--primary); color: white; font-weight: 500;
+}
+
+.dialogue-row {
+  background: var(--bg-card); border-radius: var(--radius-md);
+  padding: 12px 14px; margin-bottom: 10px;
+  box-shadow: var(--shadow); position: relative;
+}
+.speaker-tag {
+  display: inline-block; font-size: 11px;
+  background: #E8EFFF; color: #4F7CFF;
+  padding: 2px 8px; border-radius: 10px;
+  margin-bottom: 6px; font-weight: 500;
+}
+.sentence-num {
+  position: absolute; top: 8px; right: 12px;
+  font-size: 11px; color: var(--text-tertiary);
+}
+.sentence-en {
+  font-size: 16px; font-weight: 500;
+  line-height: 1.5; margin: 0 0 5px;
+}
+.sentence-zh {
+  font-size: 13px; color: var(--text-secondary);
+  line-height: 1.5; margin: 0;
+}
+.sentence-controls {
+  display: flex; gap: 6px; margin-top: 10px;
+  padding-top: 10px; border-top: 1px solid var(--border);
+}
+.btn-small {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 5px 10px; background: var(--primary-light);
+  color: var(--primary); border: none;
+  border-radius: 12px; font-size: 12px;
+  cursor: pointer; font-family: inherit;
+}
+.btn-small:active { transform: scale(0.95); }
+.btn-toggle { background: var(--bg); color: var(--text-secondary); }
+
+.story-header {
+  background: linear-gradient(135deg, #D85A30, #FF9500);
+  color: white; padding: 16px 18px; border-radius: var(--radius-lg);
+  margin-bottom: 14px;
+}
+.story-header h2 { margin: 0 0 4px; font-size: 20px; }
+.story-header p { margin: 0; opacity: 0.95; font-size: 13px; }
+.story-header .big-q {
+  margin-top: 8px; padding-top: 8px;
+  border-top: 1px solid rgba(255,255,255,0.3);
+  font-size: 12px; opacity: 0.95;
+}
+
+.section-switcher {
+  display: flex; gap: 8px; margin-bottom: 14px;
+}
+.section-btn {
+  flex: 1; padding: 12px 8px; text-align: center;
+  background: var(--bg-card); border: 2px solid var(--border);
+  border-radius: var(--radius-md); cursor: pointer;
+  font-family: inherit; font-size: 13px; font-weight: 500;
+  color: var(--text-secondary);
+}
+.section-btn.active {
+  border-color: var(--primary); color: var(--primary);
+  background: var(--primary-light);
+}
+.section-icon { font-size: 18px; display: block; margin-bottom: 2px; }
+
+.key-sentence-box {
+  background: #FFF4E0; border-left: 4px solid #FF9500;
+  padding: 11px 13px; border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  margin-bottom: 14px;
+}
+.key-sentence-box .label {
+  font-size: 10px; color: #B8740C;
+  text-transform: uppercase; letter-spacing: 1px;
+  margin-bottom: 3px;
+}
+.key-sentence-box .en {
+  font-size: 14px; font-weight: 600; margin-bottom: 2px;
+}
+.key-sentence-box .zh {
+  font-size: 12px; color: var(--text-secondary);
+}
+
+.read-all-btn {
+  width: 100%; padding: 13px;
+  background: var(--primary); color: white;
+  border: none; border-radius: var(--radius-md);
+  font-size: 14px; font-weight: 500;
+  margin-bottom: 14px; cursor: pointer;
+  font-family: inherit;
+}
+.read-all-btn.playing { background: #FF9500; }
+
+.quiz-section {
+  background: var(--bg-card); border-radius: var(--radius-lg);
+  padding: 14px; box-shadow: var(--shadow); margin-bottom: 10px;
+}
+.quiz-q { font-size: 14px; font-weight: 500; margin-bottom: 10px; }
+.quiz-opts { display: flex; flex-direction: column; gap: 7px; }
+.quiz-opt {
+  padding: 10px 12px; background: var(--bg);
+  border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+  font-size: 13px; text-align: left; cursor: pointer;
+  font-family: inherit; transition: all 0.15s;
+}
+.quiz-opt:active { transform: scale(0.98); }
+.quiz-opt.correct { background: #E8F8EC; border-color: #34C759; color: #2E8B3D; }
+.quiz-opt.wrong { background: #FFE5E5; border-color: #FF3B30; color: #C42828; }
+
+.section-divider {
+  font-size: 12px; color: var(--text-secondary);
+  text-transform: uppercase; letter-spacing: 1px;
+  margin: 20px 0 8px; padding-left: 4px;
+}
+
+.think-q {
+  background: #F0F4FF; border-radius: var(--radius-md);
+  padding: 11px 13px; margin-bottom: 14px;
+  border-left: 3px solid var(--primary);
+}
+.think-q-label {
+  font-size: 11px; color: var(--primary); font-weight: 600;
+  margin-bottom: 4px;
+}
+.think-q-en { font-size: 13px; font-weight: 500; margin-bottom: 2px; }
+.think-q-zh { font-size: 12px; color: var(--text-secondary); }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="page-header">
+    <button class="back-btn" onclick="goBack()">‹ 返回</button>
+    <h1 class="page-title" id="page-title">课文精读</h1>
+    <div style="width:60px"></div>
+  </div>
+
+  <div id="unit-list">
+    <p style="color:var(--text-secondary);font-size:13px;margin-bottom:12px">选择单元开始精读 (含 Story Time 和 Cartoon Time)</p>
+  </div>
+
+  <div id="story-area" style="display:none">
+    <div class="story-header">
+      <h2 id="story-title">Story title</h2>
+      <p id="story-title-zh">课文标题</p>
+      <div class="big-q" id="story-bigq" style="display:none"></div>
+    </div>
+    
+    <div class="section-switcher">
+      <button class="section-btn active" id="btn-story" onclick="switchSection('story')">
+        <span class="section-icon">📖</span>
+        Story Time
+      </button>
+      <button class="section-btn" id="btn-cartoon" onclick="switchSection('cartoon')">
+        <span class="section-icon">🎭</span>
+        Cartoon Time
+      </button>
+    </div>
+    
+    <div class="key-sentence-box" id="key-box">
+      <div class="label">本课核心句型</div>
+      <div class="en" id="key-en"></div>
+      <div class="zh" id="key-zh"></div>
+    </div>
+    
+    <button class="read-all-btn" id="read-all">🔊 听全文朗读</button>
+    
+    <div class="story-mode-tabs">
+      <button class="story-mode-tab active" data-mode="bilingual" onclick="setMode('bilingual')">中英对照</button>
+      <button class="story-mode-tab" data-mode="en-only" onclick="setMode('en-only')">只看英文</button>
+      <button class="story-mode-tab" data-mode="zh-only" onclick="setMode('zh-only')">只看中文</button>
+    </div>
+    
+    <div id="sentences"></div>
+    
+    <div class="think-q" id="think-q-box" style="display:none">
+      <div class="think-q-label">💡 思考一下</div>
+      <div class="think-q-en" id="think-q-en"></div>
+      <div class="think-q-zh" id="think-q-zh"></div>
+    </div>
+    
+    <div class="section-divider">阅读理解</div>
+    <div id="quiz-area"></div>
+    
+    <button class="btn btn-primary btn-large btn-full" id="finish-btn" style="margin-top:20px" onclick="finishStory()">完成精读 ✓</button>
+  </div>
+
+  <div id="done-screen" style="display:none">
+    <div class="empty-state">
+      <div class="empty-icon">📖</div>
+      <div style="font-size:22px;font-weight:600;margin-bottom:8px">精读完成!</div>
+      <div id="done-stats" style="color:var(--text-secondary);margin-bottom:20px"></div>
+      <button class="btn btn-primary btn-large" onclick="location.reload()">学其他课文</button>
+      <button class="btn btn-secondary btn-large" onclick="goBack()" style="margin-top:10px">返回主页</button>
+    </div>
+  </div>
+</div>
+
+<script src="../data/vocab-4b.js"></script>
+<script src="../js/core.js"></script>
+<script>
+let currentUnit = null;
+let currentSection = 'story'; // 'story' or 'cartoon'
+let mode = 'bilingual';
+let quizAnswers = [];
+let isReadingAll = false;
+
+function goBack() {
+  if (document.getElementById('story-area').style.display === 'block') {
+    if (confirm('确定要退出本次精读吗?')) location.href = '../index.html';
+  } else {
+    location.href = '../index.html';
+  }
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+function renderUnits() {
+  const list = document.getElementById('unit-list');
+  VOCAB_4B.units.forEach(unit => {
+    if (!unit.storyTime) return;
+    const btn = document.createElement('button');
+    btn.className = 'unit-card';
+    const storyCnt = unit.storyTime.sentences.length;
+    const cartoonCnt = unit.cartoonTime ? unit.cartoonTime.sentences.length : 0;
+    btn.innerHTML = `
+      <div class="unit-num">${unit.id}</div>
+      <div class="unit-info">
+        <div class="unit-title">${unit.titleZh}</div>
+        <div class="unit-sub">Unit ${unit.id} · ${unit.title}</div>
+        <div class="unit-sub" style="margin-top:2px">📖 Story ${storyCnt}句 · 🎭 Cartoon ${cartoonCnt}句</div>
+        <div class="unit-big-q">💡 ${escapeHtml(unit.bigQuestionZh || unit.bigQuestion)}</div>
+      </div>
+      <div style="color:var(--text-tertiary);font-size:20px">›</div>
+    `;
+    btn.onclick = () => openStory(unit);
+    list.appendChild(btn);
+  });
+}
+renderUnits();
+
+function openStory(unit) {
+  currentUnit = unit;
+  currentSection = 'story';
+  document.getElementById('unit-list').style.display = 'none';
+  document.getElementById('story-area').style.display = 'block';
+  document.getElementById('page-title').textContent = `Unit ${unit.id}`;
+  
+  // 默认显示 Story Time
+  switchSection('story');
+}
+
+function switchSection(section) {
+  currentSection = section;
+  const content = section === 'story' ? currentUnit.storyTime : currentUnit.cartoonTime;
+  if (!content) return;
+  
+  document.getElementById('btn-story').classList.toggle('active', section === 'story');
+  document.getElementById('btn-cartoon').classList.toggle('active', section === 'cartoon');
+  
+  document.getElementById('story-title').textContent = content.title;
+  document.getElementById('story-title-zh').textContent = content.titleZh;
+  
+  // Big Question (整个单元的)
+  if (currentUnit.bigQuestion) {
+    document.getElementById('story-bigq').style.display = 'block';
+    document.getElementById('story-bigq').textContent = '💡 ' + currentUnit.bigQuestion;
+  }
+  
+  document.getElementById('key-en').textContent = currentUnit.keySentence;
+  document.getElementById('key-zh').textContent = currentUnit.keySentenceZh;
+  
+  // Think question
+  if (content.thinkQuestion) {
+    document.getElementById('think-q-box').style.display = 'block';
+    document.getElementById('think-q-en').textContent = content.thinkQuestion;
+    document.getElementById('think-q-zh').textContent = content.thinkQuestionZh || '';
+  } else {
+    document.getElementById('think-q-box').style.display = 'none';
+  }
+  
+  // 停止正在播放的语音
+  if (isReadingAll) {
+    Speech.stop();
+    isReadingAll = false;
+    document.getElementById('read-all').textContent = '🔊 听全文朗读';
+    document.getElementById('read-all').classList.remove('playing');
+  }
+  
+  renderSentences();
+  renderQuiz();
+}
+
+function renderSentences() {
+  const content = currentSection === 'story' ? currentUnit.storyTime : currentUnit.cartoonTime;
+  const wrap = document.getElementById('sentences');
+  const sentences = content.sentences;
+  
+  wrap.innerHTML = sentences.map((s, i) => {
+    const speakerHTML = s.speaker ? `<div class="speaker-tag">${escapeHtml(s.speaker)}</div>` : '';
+    return `
+      <div class="dialogue-row">
+        <div class="sentence-num">${i + 1}</div>
+        ${speakerHTML}
+        <div class="sentence-en" style="${mode === 'zh-only' ? 'display:none' : ''}">${escapeHtml(s.en)}</div>
+        <div class="sentence-zh" style="${mode === 'en-only' ? 'display:none' : ''}">${escapeHtml(s.zh)}</div>
+        <div class="sentence-controls">
+          <button class="btn-small" onclick="playSent(${i})">🔊 听</button>
+          <button class="btn-small" onclick="playSentSlow(${i})">🐢 慢听</button>
+          <button class="btn-small btn-toggle" onclick="repeatSent(${i})">🔁 跟读</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function setMode(m) {
+  mode = m;
+  document.querySelectorAll('.story-mode-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.mode === m);
+  });
+  renderSentences();
+}
+
+function getCurrentSentences() {
+  const content = currentSection === 'story' ? currentUnit.storyTime : currentUnit.cartoonTime;
+  return content.sentences;
+}
+
+function playSent(i) {
+  Speech.speak(getCurrentSentences()[i].en, { rate: 0.85 });
+}
+
+function playSentSlow(i) {
+  Speech.speak(getCurrentSentences()[i].en, { rate: 0.6 });
+}
+
+function repeatSent(i) {
+  const en = getCurrentSentences()[i].en;
+  Speech.speak(en, {
+    rate: 0.7,
+    onend: () => setTimeout(() => Speech.speak(en, { rate: 0.7 }), 800)
+  });
+}
+
+document.getElementById('read-all').addEventListener('click', () => {
+  const btn = document.getElementById('read-all');
+  if (isReadingAll) {
+    Speech.stop();
+    isReadingAll = false;
+    btn.textContent = '🔊 听全文朗读';
+    btn.classList.remove('playing');
+    return;
+  }
+  isReadingAll = true;
+  btn.textContent = '⏸ 停止朗读';
+  btn.classList.add('playing');
+  
+  const sentences = getCurrentSentences();
+  let idx = 0;
+  function next() {
+    if (!isReadingAll || idx >= sentences.length) {
+      isReadingAll = false;
+      btn.textContent = '🔊 听全文朗读';
+      btn.classList.remove('playing');
+      return;
+    }
+    Speech.speak(sentences[idx].en, {
+      rate: 0.8,
+      onend: () => { idx++; setTimeout(next, 400); }
+    });
+  }
+  next();
+});
+
+function renderQuiz() {
+  const content = currentSection === 'story' ? currentUnit.storyTime : currentUnit.cartoonTime;
+  const quiz = document.getElementById('quiz-area');
+  const questions = content.questions || [];
+  quizAnswers = new Array(questions.length).fill(null);
+  
+  if (questions.length === 0) {
+    quiz.innerHTML = '<p style="color:var(--text-secondary);font-size:13px;text-align:center;padding:20px">本部分没有阅读题</p>';
+    return;
+  }
+  
+  quiz.innerHTML = questions.map((q, qi) => `
+    <div class="quiz-section">
+      <div class="quiz-q">${qi + 1}. ${escapeHtml(q.q)}</div>
+      <div class="quiz-opts" id="opts-${qi}">
+        ${q.options.map((opt, oi) => `
+          <button class="quiz-opt" data-qi="${qi}" data-oi="${oi}" onclick="answerQuiz(${qi}, ${oi})">${String.fromCharCode(65 + oi)}. ${escapeHtml(opt)}</button>
+        `).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+function answerQuiz(qi, oi) {
+  const content = currentSection === 'story' ? currentUnit.storyTime : currentUnit.cartoonTime;
+  const q = content.questions[qi];
+  const opts = document.querySelectorAll(`#opts-${qi} .quiz-opt`);
+  if (quizAnswers[qi] !== null) return;
+  
+  quizAnswers[qi] = oi;
+  opts.forEach(o => o.style.pointerEvents = 'none');
+  
+  const correct = oi === q.answer;
+  opts[oi].classList.add(correct ? 'correct' : 'wrong');
+  if (!correct) opts[q.answer].classList.add('correct');
+  
+  Tracking.log('story_quiz', { unit: currentUnit.id, section: currentSection, question: qi, correct });
+}
+
+function finishStory() {
+  const content = currentSection === 'story' ? currentUnit.storyTime : currentUnit.cartoonTime;
+  const questions = content.questions || [];
+  const correct = quizAnswers.filter((a, i) => questions[i] && a === questions[i].answer).length;
+  const total = questions.length;
+  Tracking.log('story_finish', { unit: currentUnit.id, section: currentSection, correct, total });
+  
+  document.getElementById('story-area').style.display = 'none';
+  document.getElementById('done-screen').style.display = 'block';
+  const sectionName = currentSection === 'story' ? 'Story Time' : 'Cartoon Time';
+  document.getElementById('done-stats').textContent = 
+    `读完了 Unit ${currentUnit.id} 的 ${sectionName},答对 ${correct}/${total} 题。多读几遍就更熟了!`;
+}
+</script>
+</body>
+</html>
